@@ -81,7 +81,7 @@ class SlurmSpawnerForm(Form):
         self.set_nproc_max(get_slurm_cpus())
         self.set_gpu_choices(get_slurm_gres())
         # Convert runtime to seconds
-        self.runtime.filters = [lambda x: x * 3600]
+        self.runtime.filters = [lambda x: int(x * 3600)]
 
     def render(self):
         return Template(self.template).render(form=self)
