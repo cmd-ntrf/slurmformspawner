@@ -7,16 +7,16 @@ from wtforms.fields.html5 import IntegerField
 from wtforms.widgets.html5 import NumberInput
 
 def get_slurm_cpus():
-    cpus = check_output(['sinfo', '-h', '-e', '--format=%c'], text=True).split()
+    cpus = check_output(['sinfo', '-h', '-e', '--format=%c'], encoding='utf-8').split()
     return list(map(int, cpus))
 
 def get_slurm_accounts(username):
     output = check_output(['sacctmgr', 'show', 'user', username, 'withassoc',
-                           'format=account', '-p', '--noheader'], text=True).split()
+                           'format=account', '-p', '--noheader'], encoding='utf-8').split()
     return [out.rstrip('|') for out in output]
 
 def get_slurm_gres():
-    return check_output(['sinfo', '-h', '--format=%G'], text=True).split()
+    return check_output(['sinfo', '-h', '--format=%G'], encoding='utf-8').split()
 
 class SlurmSpawnerForm(Form):
     account = SelectField("Account")
