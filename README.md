@@ -4,4 +4,4 @@ JupyterHub SlurmSpawner with a dynamic spawn form
 
 ## screenshot
 
-[! form screenshot](https://github.com/cmd-ntrf/slurmformspawner/blob/master/screenshot.png?raw=true)
+![form_screenshot](https://raw.githubusercontent.com/cmd-ntrf/slurmformspawner/master/screenshot.png "Form screenshot")
