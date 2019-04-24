@@ -16,6 +16,14 @@ class SlurmFormSpawner(SlurmSpawner):
         self.form = SlurmSpawnerForm(self.user.name)
 
     @property
+    def cmd(self):
+        gui = self.user_options.get('gui', '')
+        if gui == 'lab':
+            return ['jupyter-labhub']
+        else:
+            return ['jupyterhub-singleuser']
+
+    @property
     def options_form(self):
         return self.form.render()
 
