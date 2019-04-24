@@ -22,8 +22,9 @@ class SlurmSpawnerForm(Form):
     account = SelectField("Account")
     runtime = DecimalField('Time (hours)', validators=[InputRequired()],
                            widget=NumberInput(min=0.25, max=12, step=0.25))
-    notebook = RadioField('Notebook choices',
-                          choices=[('notebook', 'Jupyter Notebook'), ('lab', 'Jupyter Lab')])
+    gui     = RadioField('GUI',
+                         choices=[('notebook', 'Jupyter Notebook'), ('lab', 'JupyterLab')],
+                         default='notebook')
     nprocs  = IntegerField('Number of cores', validators=[InputRequired()],
                            widget=NumberInput(min=1, step=1))
     memory  = IntegerField('Memory (MB)',  validators=[InputRequired()],
@@ -66,8 +67,11 @@ class SlurmSpawnerForm(Form):
     {{ form.gpus(class_="form-control") }}
 </div>
 <div class="form-group">
-    {% for subfield in form.notebook %}
-        {{ subfield }}{{ subfield.label(class="radio-inline") }}
+    {{ form.gui.label }}
+    {% for subfield in form.gui %}
+        <div class="radio">
+            <label>{{ subfield }}{{subfield.label.text}}</label>
+        </div>
     {% endfor %}
 </div>
 """
