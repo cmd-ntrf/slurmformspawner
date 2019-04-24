@@ -1,7 +1,7 @@
 from subprocess import check_output
 
 from jinja2 import Template
-from wtforms import BooleanField, DecimalField, SelectField, StringField, Form
+from wtforms import BooleanField, DecimalField, SelectField, StringField, Form, RadioField
 from wtforms.validators import InputRequired
 from wtforms.fields.html5 import IntegerField
 from wtforms.widgets.html5 import NumberInput
@@ -22,6 +22,8 @@ class SlurmSpawnerForm(Form):
     account = SelectField("Account")
     runtime = DecimalField('Time (hours)', validators=[InputRequired()],
                            widget=NumberInput(min=0.25, max=12, step=0.25))
+    notebook = RadioField('Notebook choices',
+                          choices=[('notebook', 'Jupyter Notebook'), ('lab', 'Jupyter Lab')])
     nprocs  = IntegerField('Number of cores', validators=[InputRequired()],
                            widget=NumberInput(min=1, step=1))
     memory  = IntegerField('Memory (MB)',  validators=[InputRequired()],
@@ -62,6 +64,11 @@ class SlurmSpawnerForm(Form):
 <div class="form-group">
     {{ form.gpus.label }}
     {{ form.gpus(class_="form-control") }}
+</div>
+<div class="form-group">
+    {% for subfield in form.notebook %}
+        {{ subfield }}{{ subfield.label(class="radio-inline") }}
+    {% endfor %}
 </div>
 """
     def __init__(self, username):
