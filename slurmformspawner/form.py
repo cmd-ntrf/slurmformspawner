@@ -44,19 +44,15 @@ class SlurmSpawnerForm(Form):
         </div>
     </div>
 </div>
-<div class="row">
-    <div class="col">
-        <div class="form-group col-md-6">
-            {{ form.nprocs.label }}
-            {{ form.nprocs(class_="form-control") }}
-        </div>
-    </div>
-    <div class="col">
-        <div class="form-check">
-            {{ form.oversubscribe(class_="form-check-input") }}
-            {{ form.oversubscribe.label(class_="form-check-label") }}<br>
-            <small id="overs_help" class="form-text text-muted">Recommended for interactive usage</small>
-        </div>
+<div class="form-group">
+    {{ form.nprocs.label }}
+    {{ form.nprocs(class_="form-control") }}
+</div>
+<div class="form-group">
+    <div class="form-check">
+        {{ form.oversubscribe(class_="form-check-input") }}
+        {{ form.oversubscribe.label(class_="form-check-label") }}
+        <small id="overs_help" class="form-text text-muted">Recommended for interactive usage</small>
     </div>
 </div>
 <div class="form-group">
