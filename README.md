@@ -1,0 +1,6 @@
+# slurmformspawner
+JupyterHub SlurmSpawner with a dynamic spawn form
+
+
+## screenshot
+
