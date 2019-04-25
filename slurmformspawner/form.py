@@ -75,13 +75,20 @@ class SlurmSpawnerForm(Form):
     {% endfor %}
 </div>
 """
-    def __init__(self, username):
+    def __init__(self, username, fields):
         super().__init__()
         self.set_account_choices(get_slurm_accounts(username))
         self.set_nproc_max(get_slurm_cpus())
         self.set_gpu_choices(get_slurm_gres())
-        # Convert runtime to seconds
-        self.runtime.filters = [lambda x: int(x * 3600)]
+
+        for field, value in fields:
+            if value:
+                self[field].data = value
+
+        # Convert runtime to minutes
+        if self['runtime'].data:
+            self['runtime'].data //= 60
+        self.runtime.filters = [lambda x: int(x * 60)]
 
     def render(self):
         return Template(self.template).render(form=self)

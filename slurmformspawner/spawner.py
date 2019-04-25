@@ -13,7 +13,8 @@ class SlurmFormSpawner(SlurmSpawner):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.form = SlurmSpawnerForm(self.user.name)
+        prev_opts = self.orm_spawner.user_options
+        self.form = SlurmSpawnerForm(self.user.name, prev_opts)
 
     @property
     def cmd(self):
