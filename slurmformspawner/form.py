@@ -87,7 +87,7 @@ class SlurmSpawnerForm(Form):
 
         # Convert runtime to minutes
         if self['runtime'].data:
-            self['runtime'].data //= 60
+            self['runtime'].data = round(self['runtime'].data / 60, 2)
         self.runtime.filters = [lambda x: int(x * 60)]
 
     def render(self):
