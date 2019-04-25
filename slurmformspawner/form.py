@@ -81,7 +81,7 @@ class SlurmSpawnerForm(Form):
         self.set_nproc_max(get_slurm_cpus())
         self.set_gpu_choices(get_slurm_gres())
 
-        for field, value in fields:
+        for field, value in fields.items():
             if value:
                 self[field].data = value
 
