@@ -18,6 +18,14 @@ def get_slurm_accounts(username):
 def get_slurm_gres():
     return check_output(['sinfo', '-h', '--format=%G'], encoding='utf-8').split()
 
+def get_slurm_active_reservations(username):
+    reservations = check_output(['scontrol', 'show', 'res'], encoding='utf-8').split('\n\n')
+    reservations = [rsv.split() for rsv in reservations]
+    reservations = [dict([item.split('=', maxsplit=1) for item in rsv]) for rsv in reservations if rsv]
+    for rsv in reservations:
+        rsv['Users'] = set(rsv['Users'].split(','))
+    return [rsv for rsv in reservations if username in rsv['Users'] and rsv['State'] == 'ACTIVE']
+
 class SlurmSpawnerForm(Form):
     account = SelectField("Account")
     runtime = DecimalField('Time (hours)', validators=[InputRequired()],
@@ -31,6 +39,7 @@ class SlurmSpawnerForm(Form):
                            widget=NumberInput(min=256, step=256))
     gpus    = SelectField('GPU configuration')
     oversubscribe = BooleanField('Enable core oversubscription?')
+    reservation = SelectField("Reservation")
 
     template = """
 <div class="row">
@@ -74,12 +83,17 @@ class SlurmSpawnerForm(Form):
         </div>
     {% endfor %}
 </div>
+<div class="form-group">
+    {{ form.reservation.label }}
+    {{ form.reservation(class_="form-control") }}
+</div>
 """
     def __init__(self, username, fields):
         super().__init__()
         self.set_account_choices(get_slurm_accounts(username))
         self.set_nproc_max(get_slurm_cpus())
         self.set_gpu_choices(get_slurm_gres())
+        self.set_reservations(get_slurm_active_reservations(username))
 
         for field, value in fields.items():
             if value:
@@ -112,3 +126,7 @@ class SlurmSpawnerForm(Form):
                 for i in range(1, number + 1):
                     gpu_choices[strings[0].format(i)] = strings[1].format(i)
         self.gpus.choices = gpu_choices.items()
+
+    def set_reservations(self, reservation_list):
+        rsv_names = [rsv['ReservationName'] for rsv in reservation_list]
+        self.reservation.choices = [("", "None")] + list(zip(rsv_names, rsv_names))
