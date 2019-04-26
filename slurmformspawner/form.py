@@ -90,10 +90,10 @@ class SlurmSpawnerForm(Form):
 """
     def __init__(self, username, fields):
         super().__init__()
+        self.username = username
         self.set_account_choices(get_slurm_accounts(username))
         self.set_nproc_max(get_slurm_cpus())
         self.set_gpu_choices(get_slurm_gres())
-        self.set_reservations(get_slurm_active_reservations(username))
 
         for field, value in fields.items():
             if value:
@@ -105,6 +105,7 @@ class SlurmSpawnerForm(Form):
         self.runtime.filters = [lambda x: int(x * 60)]
 
     def render(self):
+        self.set_reservations(get_slurm_active_reservations(self.username))
         return Template(self.template).render(form=self)
 
     def set_nproc_max(self, cpu_choices):
