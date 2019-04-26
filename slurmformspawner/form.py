@@ -76,16 +76,16 @@ class SlurmSpawnerForm(Form):
     {{ form.gpus(class_="form-control") }}
 </div>
 <div class="form-group">
+    {{ form.reservation.label }}
+    {{ form.reservation(class_="form-control") }}
+</div>
+<div class="form-group">
     {{ form.gui.label }}
     {% for subfield in form.gui %}
         <div class="radio">
             <label>{{ subfield }}{{subfield.label.text}}</label>
         </div>
     {% endfor %}
-</div>
-<div class="form-group">
-    {{ form.reservation.label }}
-    {{ form.reservation(class_="form-control") }}
 </div>
 """
     def __init__(self, username, fields):
