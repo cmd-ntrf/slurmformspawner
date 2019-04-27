@@ -1,3 +1,4 @@
+from datetime import datetime
 from subprocess import check_output
 
 from jinja2 import Template
@@ -24,6 +25,8 @@ def get_slurm_active_reservations(username):
     reservations = [dict([item.split('=', maxsplit=1) for item in rsv]) for rsv in reservations if rsv]
     for rsv in reservations:
         rsv['Users'] = set(rsv['Users'].split(','))
+        rsv['StartTime'] = datetime.strptime(rsv['StartTime'], "%Y-%m-%dT%H:%M:%S")
+        rsv['EndTime'] = datetime.strptime(rsv['EndTime'], "%Y-%m-%dT%H:%M:%S")
     return [rsv for rsv in reservations if username in rsv['Users'] and rsv['State'] == 'ACTIVE']
 
 class SlurmSpawnerForm(Form):
@@ -129,5 +132,13 @@ class SlurmSpawnerForm(Form):
         self.gpus.choices = gpu_choices.items()
 
     def set_reservations(self, reservation_list):
-        rsv_names = [rsv['ReservationName'] for rsv in reservation_list]
-        self.reservation.choices = [("", "None")] + list(zip(rsv_names, rsv_names))
+        now = datetime.now()
+        choices = [("", "None")]
+        for rsv in reservation_list:
+            name = rsv['ReservationName']
+            duration = rsv['EndTime'] - now
+            hours = duration.days * 24 + duration.seconds // 3600
+            minutes = (duration.seconds % 3600) // 60
+            string = '{} - time left: {}h{}m'.format(name, hours. minutes)
+            choices.append((name, string))
+        self.reservation.choices = choices
