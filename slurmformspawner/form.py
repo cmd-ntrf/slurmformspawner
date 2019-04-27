@@ -139,6 +139,6 @@ class SlurmSpawnerForm(Form):
             duration = rsv['EndTime'] - now
             hours = duration.days * 24 + duration.seconds // 3600
             minutes = (duration.seconds % 3600) // 60
-            string = '{} - time left: {}h{}m'.format(name, hours. minutes)
+            string = '{} - time left: {}h{}m'.format(name, hours, minutes)
             choices.append((name, string))
         self.reservation.choices = choices
