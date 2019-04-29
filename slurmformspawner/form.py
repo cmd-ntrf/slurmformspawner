@@ -20,9 +20,10 @@ def get_slurm_gres():
     return check_output(['sinfo', '-h', '--format=%G'], encoding='utf-8').split()
 
 def get_slurm_active_reservations(username):
-    reservations = check_output(['scontrol', 'show', 'res'], encoding='utf-8').split('\n\n')
-    reservations = [rsv.split() for rsv in reservations]
-    reservations = [dict([item.split('=', maxsplit=1) for item in rsv]) for rsv in reservations if rsv]
+    reservations = check_output(['scontrol', 'show', 'res', '-o', '--quiet'], encoding='utf-8').strip().split('\n')
+    if not reservations:
+        return []
+    reservations = [dict([item.split('=', maxsplit=1) for item in rsv.split()]) for rsv in reservations if rsv]
     for rsv in reservations:
         rsv['Users'] = set(rsv['Users'].split(','))
         rsv['StartTime'] = datetime.strptime(rsv['StartTime'], "%Y-%m-%dT%H:%M:%S")
