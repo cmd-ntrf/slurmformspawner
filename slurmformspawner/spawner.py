@@ -7,7 +7,8 @@ class FakeMultiDict(dict):
 
 class SlurmFormSpawner(SlurmSpawner):
     exec_prefix = ""
-    batch_submit_cmd = "sudo -E -u {username} sbatch --parsable"
+    env_keep = []
+    batch_submit_cmd = "sudo --preverse-env={keepvars} -u {username} sbatch --parsable"
     batch_cancel_cmd = "sudo -u {username} scancel {job_id}"
     submit_path = '/etc/jupyterhub/submit.sh'
 
