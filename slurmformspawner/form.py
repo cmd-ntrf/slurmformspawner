@@ -1,3 +1,5 @@
+import re
+
 from datetime import datetime
 from subprocess import check_output
 
@@ -16,8 +18,15 @@ def get_slurm_accounts(username):
                            'format=account', '-p', '--noheader'], encoding='utf-8').split()
     return [out.rstrip('|') for out in output]
 
+GPU_REGEX = re.compile(r'gpu:(\d+)')
 def get_slurm_gres():
-    return check_output(['sinfo', '-h', '--format=%G'], encoding='utf-8').split()
+    output = check_output(['sinfo', '-h', '--format=%G'], encoding='utf-8').split()
+    gpu_count = set()
+    for out in output:
+        match = re.search(GPU_REGEX, out)
+        if match:
+            gpu_count.add(int(match.groups(0)[0]))
+    return sorted(gpu_count)
 
 def get_slurm_active_reservations(username):
     reservations = check_output(['scontrol', 'show', 'res', '-o', '--quiet'], encoding='utf-8').strip().split('\n')
