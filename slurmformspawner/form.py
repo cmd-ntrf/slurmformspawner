@@ -18,15 +18,8 @@ def get_slurm_accounts(username):
                            'format=account', '-p', '--noheader'], encoding='utf-8').split()
     return [out.rstrip('|') for out in output]
 
-GPU_REGEX = re.compile(r'gpu:(\d+)')
 def get_slurm_gres():
-    output = check_output(['sinfo', '-h', '--format=%G'], encoding='utf-8').split()
-    gpu_count = set()
-    for out in output:
-        match = re.search(GPU_REGEX, out)
-        if match:
-            gpu_count.add(int(match.groups(0)[0]))
-    return sorted(gpu_count)
+    return check_output(['sinfo', '-h', '--format=%G'], encoding='utf-8').split()
 
 def get_slurm_active_reservations(username):
     reservations = check_output(['scontrol', 'show', 'res', '-o', '--quiet'], encoding='utf-8').strip().split('\n')
@@ -130,8 +123,9 @@ class SlurmSpawnerForm(Form):
     def set_gpu_choices(self, gres_list):
         gpu_choices = {'gpu:0': 'None'}
         for gres in gres_list:
-            gres = gres.split(':')
-            if gres[0] == 'gpu':
+            match = re.match(r"(gpu:.*)\(.*\)", gres)
+            if match:
+                gres = match.group(1).split(':')
                 number = int(gres[-1])
                 if len(gres) == 2:
                     strings = ('gpu:{}', '{} x GPU')
