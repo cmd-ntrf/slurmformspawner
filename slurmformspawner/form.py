@@ -123,7 +123,7 @@ class SlurmSpawnerForm(Form):
     def set_gpu_choices(self, gres_list):
         gpu_choices = {'gpu:0': 'None'}
         for gres in gres_list:
-            match = re.match(r"(gpu:.*)\(.*\)", gres)
+            match = re.match(r"(gpu:[\w:]+)", gres)
             if match:
                 gres = match.group(1).split(':')
                 number = int(gres[-1])
