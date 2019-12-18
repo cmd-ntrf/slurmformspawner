@@ -103,8 +103,6 @@ class SlurmSpawnerForm(Form):
     def __init__(self, username, fields):
         super().__init__()
         self.username = username
-        self.accounts = get_slurm_accounts(self.username)
-        self.set_account_choices(self.accounts)
         self.set_nproc_max(get_slurm_cpus())
         self.set_gpu_choices(get_slurm_gres())
 
@@ -118,7 +116,10 @@ class SlurmSpawnerForm(Form):
         self.runtime.filters = [lambda x: int(x * 60)]
 
     def render(self):
-        self.set_reservations(get_slurm_active_reservations(self.username, self.accounts))
+        accounts = get_slurm_accounts(self.username)
+        reservations = get_slurm_active_reservations(self.username, accounts)
+        self.set_account_choices(accounts)
+        self.set_reservations(reservations)
         return Template(self.template).render(form=self)
 
     def set_nproc_max(self, cpu_choices):
