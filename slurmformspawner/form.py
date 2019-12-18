@@ -21,16 +21,22 @@ def get_slurm_accounts(username):
 def get_slurm_gres():
     return check_output(['sinfo', '-h', '--format=%G'], encoding='utf-8').split()
 
-def get_slurm_active_reservations(username):
+def get_slurm_active_reservations(username, accounts):
+    accounts = set(accounts)
     reservations = check_output(['scontrol', 'show', 'res', '-o', '--quiet'], encoding='utf-8').strip().split('\n')
     if not reservations:
         return []
     reservations = [dict([item.split('=', maxsplit=1) for item in rsv.split()]) for rsv in reservations if rsv]
     for rsv in reservations:
-        rsv['Users'] = set(rsv['Users'].split(','))
-        rsv['StartTime'] = datetime.strptime(rsv['StartTime'], "%Y-%m-%dT%H:%M:%S")
-        rsv['EndTime'] = datetime.strptime(rsv['EndTime'], "%Y-%m-%dT%H:%M:%S")
-    return [rsv for rsv in reservations if username in rsv['Users'] and rsv['State'] == 'ACTIVE']
+        if rsv['State'] == 'ACTIVE':
+            rsv['Users'] = set(rsv['Users'].split(','))
+            rsv['Accounts'] = set(rsv['Accounts'].split(','))
+            rsv['StartTime'] = datetime.strptime(rsv['StartTime'], "%Y-%m-%dT%H:%M:%S")
+            rsv['EndTime'] = datetime.strptime(rsv['EndTime'], "%Y-%m-%dT%H:%M:%S")
+            rsv['valid'] = username in rsv['Users'] or bool(accounts.intersection(rsv['Accounts']))
+        else:
+            rsv['valid'] = False
+    return [rsv for rsv in reservations if rsv['valid']]
 
 class SlurmSpawnerForm(Form):
     account = SelectField("Account")
@@ -97,7 +103,8 @@ class SlurmSpawnerForm(Form):
     def __init__(self, username, fields):
         super().__init__()
         self.username = username
-        self.set_account_choices(get_slurm_accounts(username))
+        self.accounts = get_slurm_accounts(self.username)
+        self.set_account_choices(self.accounts)
         self.set_nproc_max(get_slurm_cpus())
         self.set_gpu_choices(get_slurm_gres())
 
@@ -111,7 +118,7 @@ class SlurmSpawnerForm(Form):
         self.runtime.filters = [lambda x: int(x * 60)]
 
     def render(self):
-        self.set_reservations(get_slurm_active_reservations(self.username))
+        self.set_reservations(get_slurm_active_reservations(self.username, self.accounts))
         return Template(self.template).render(form=self)
 
     def set_nproc_max(self, cpu_choices):
