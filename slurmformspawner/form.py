@@ -149,7 +149,6 @@ class SlurmSpawnerForm(Form):
         for rsv in reservation_list:
             name = rsv['ReservationName']
             duration = rsv['EndTime'] - now
-            duration._microseconds = None
             string = '{} - time left: {}'.format(name, duration)
             choices.append((name, string))
         self.reservation.choices = choices
