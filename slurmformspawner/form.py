@@ -4,6 +4,7 @@ from datetime import datetime
 from subprocess import check_output
 
 from jinja2 import Template
+from traitlets import Integer, Unicode, Float
 from wtforms import BooleanField, DecimalField, SelectField, StringField, Form, RadioField
 from wtforms.validators import InputRequired
 from wtforms.fields.html5 import IntegerField
@@ -48,7 +49,7 @@ class SlurmSpawnerForm(Form):
     nprocs  = IntegerField('Number of cores', validators=[InputRequired()],
                            widget=NumberInput(min=1, step=1))
     memory  = IntegerField('Memory (MB)',  validators=[InputRequired()],
-                           widget=NumberInput(min=256, step=256))
+                           widget=NumberInput())
     gpus    = SelectField('GPU configuration')
     oversubscribe = BooleanField('Enable core oversubscription?')
     reservation = SelectField("Reservation")
@@ -100,13 +101,19 @@ class SlurmSpawnerForm(Form):
     {% endfor %}
 </div>
 """
-    def __init__(self, username, fields):
+    def __init__(self, username, form_params, prev_values):
         super().__init__()
         self.username = username
         self.set_nproc_max(get_slurm_cpus())
         self.set_gpu_choices(get_slurm_gres())
 
-        for field, value in fields.items():
+        self.memory.widget.min = form_params['mem_min']
+        self.memory.widget.step = form_params['mem_step']
+        self.memory.data = form_params['mem_def']
+        if form_params['mem_lock']:
+            self.memory.render_kw = {'disabled': 'disabled'}
+
+        for field, value in prev_values.items():
             if value:
                 self[field].data = value
 
