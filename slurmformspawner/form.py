@@ -61,7 +61,6 @@ class SlurmSpawnerForm(Form):
     def __init__(self, username, template_path, form_params, prev_values):
         super().__init__()
         self.username = username
-        self.set_nproc_max(get_slurm_cpus())
         self.set_gpu_choices(get_slurm_gres())
 
         with open(template_path, 'r') as template_file:
