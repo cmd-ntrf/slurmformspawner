@@ -84,7 +84,7 @@ class SlurmSpawnerForm(Form):
                            step=form_params['mem']['step'],
                            lock=form_params['mem']['lock'])
 
-        self.config_oversubscribe(prev=prev_values.pop('oversubscribe'),
+        self.config_oversubscribe(prev=prev_values.pop('oversubscribe', None),
                                   def_=form_params['oversubscribe']['def_'],
                                   lock=form_params['oversubscribe']['lock'])
 
@@ -140,10 +140,10 @@ class SlurmSpawnerForm(Form):
             self.memory.render_kw = {'disabled': 'disabled'}
 
     def config_oversubscribe(self, prev, def_, lock):
+        self.oversubscribe.data = def_
         if lock:
-            self.oversubscribe.data = def_
             self.oversubscribe.render_kw = {'disabled': 'disabled'}
-        else:
+        elif prev is not None:
             self.oversubscribe.data = prev
 
     def set_account_choices(self, accounts):
