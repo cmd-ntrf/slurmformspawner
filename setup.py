@@ -27,6 +27,8 @@ setup_args = dict(
       'WTForms>=2.2.1',
       'jinja2>=2.10.1'
     ],
+    data_files = [('share/slurmformspawner/templates', ['share/templates/submit.sh',
+                                                        'share/templates/form.html'])]
 )
 
 def main():

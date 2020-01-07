@@ -1,5 +1,8 @@
+import os
+import sys
+
 from batchspawner import SlurmSpawner
-from traitlets import Integer, Bool
+from traitlets import Integer, Bool, Unicode
 
 from . form import SlurmSpawnerForm
 
@@ -15,7 +18,7 @@ class SlurmFormSpawner(SlurmSpawner):
     mem_step = Integer(256,
         help="Define the step of size of memory request range"
         ).tag(config=True)
-    
+
     mem_def = Integer(1024,
         help="Define the default amount of memory in the form"
         ).tag(config=True)
@@ -24,12 +27,20 @@ class SlurmFormSpawner(SlurmSpawner):
         help="Disable user input for memory request"
         ).tag(config=True)
 
+    form_template_path = Unicode(
+        os.path.join(sys.prefix, 'share/slurmformspawner/form.html')
+        help="Path to the Jinja2 template of the form"
+        ).tag(config=True)
+
+    submit_template_path = Unicode(
+        os.path.join(sys.prefix, 'share/slurmformspawner/submit.sh')
+        help="Path to the Jinja2 template of the submit file"
+        ).tag(config=True)
+
     exec_prefix = ""
     env_keep = []
     batch_submit_cmd = "sudo --preserve-env={keepvars} -u {username} sbatch --parsable"
     batch_cancel_cmd = "sudo -u {username} scancel {job_id}"
-    submit_path = '/etc/jupyterhub/submit.sh'
-
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -42,7 +53,10 @@ class SlurmFormSpawner(SlurmSpawner):
         form_params['mem_step'] = self.mem_step
         form_params['mem_def'] = self.mem_def
         form_params['mem_lock'] = self.mem_lock
-        self.form = SlurmSpawnerForm(self.user.name, form_params, prev_opts)
+        self.form = SlurmSpawnerForm(self.user.name,
+                                     self.form_template_path,
+                                     form_params,
+                                     prev_opts)
 
     @property
     def cmd(self):
@@ -62,6 +76,6 @@ class SlurmFormSpawner(SlurmSpawner):
 
     @property
     def batch_script(self):
-        with open(self.submit_path, 'r') as script_template:
+        with open(self.submit_template_path, 'r') as script_template:
             script = script_template.read()
         return script

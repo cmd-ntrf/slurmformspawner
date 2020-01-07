@@ -54,58 +54,14 @@ class SlurmSpawnerForm(Form):
     oversubscribe = BooleanField('Enable core oversubscription?')
     reservation = SelectField("Reservation")
 
-    template = """
-<div class="row">
-    <div class="col">
-        <div class="form-group col-md-6">
-            {{ form.account.label }}
-            {{ form.account(class_="form-control") }}
-        </div>
-    </div>
-    <div class="col">
-        <div class="form-group col-md-6">
-            {{ form.runtime.label }}
-            {{ form.runtime(class_="form-control") }}
-        </div>
-    </div>
-</div>
-<div class="form-group">
-    {{ form.nprocs.label }}
-    {{ form.nprocs(class_="form-control") }}
-</div>
-<div class="form-group">
-    <div class="form-check">
-        {{ form.oversubscribe(class_="form-check-input") }}
-        {{ form.oversubscribe.label(class_="form-check-label") }}
-        <small id="overs_help" class="form-text text-muted">Recommended for interactive usage</small>
-    </div>
-</div>
-<div class="form-group">
-    {{ form.memory.label }}
-    {{ form.memory(class_="form-control") }}
-</div>
-<div class="form-group">
-    {{ form.gpus.label }}
-    {{ form.gpus(class_="form-control") }}
-</div>
-<div class="form-group">
-    {{ form.reservation.label }}
-    {{ form.reservation(class_="form-control") }}
-</div>
-<div class="form-group">
-    {{ form.gui.label }}
-    {% for subfield in form.gui %}
-        <div class="radio">
-            <label>{{ subfield }}{{subfield.label.text}}</label>
-        </div>
-    {% endfor %}
-</div>
-"""
-    def __init__(self, username, form_params, prev_values):
+    def __init__(self, username, template_path, form_params, prev_values):
         super().__init__()
         self.username = username
         self.set_nproc_max(get_slurm_cpus())
         self.set_gpu_choices(get_slurm_gres())
+
+        with open(template_path, 'r') as template_file:
+            self.template = template_file.read()
 
         self.memory.widget.min = form_params['mem_min']
         self.memory.widget.step = form_params['mem_step']
