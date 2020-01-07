@@ -34,18 +34,22 @@ class SlurmFormSpawner(SlurmSpawner):
                         ).tag(config=True)
 
     mem_min = Integer(1024,
+        min=1,
         help="Minimum amount of memory that can be requested in MB"
         ).tag(config=True)
 
     mem_max = Integer(
+        min=0,
         help="Maximum amount of memory that can be requested in MB (0: limits is infered from Slurm config)"
         ).tag(config=True)
 
     mem_step = Integer(1,
+        min=1,
         help="Define the step of size of memory request range in MB"
         ).tag(config=True)
 
     mem_def = Integer(1024,
+        min=1,
         help="Define the default amount of memory in the form in MB"
         ).tag(config=True)
 
@@ -54,18 +58,22 @@ class SlurmFormSpawner(SlurmSpawner):
         ).tag(config=True)
 
     core_min = Integer(1,
+        min=1,
         help="Minimum amount of cores that can be requested"
         ).tag(config=True)
 
     core_max = Integer(
+        min=0,
         help="Maximum amount of cores that can be requested (0: limits is infered from Slurm config)"
         ).tag(config=True)
 
     core_step = Integer(1,
+        min=1,
         help="Define the step of cores request range"
         ).tag(config=True)
 
     core_def = Integer(1,
+        min=1,
         help="Define the default amount of cores in the form"
         ).tag(config=True)
 
@@ -138,7 +146,8 @@ class SlurmFormSpawner(SlurmSpawner):
             options.pop('memory', None)
         self.form.process(formdata=FakeMultiDict(options),
                           runtime=self.runtime_def,
-                          memory=self.mem_def)
+                          memory=self.mem_def,
+                          nprocs=self.core_def)
         return self.form.data
 
     @property
