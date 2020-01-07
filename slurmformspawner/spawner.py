@@ -100,10 +100,12 @@ class SlurmFormSpawner(SlurmSpawner):
 
     def options_from_form(self, options):
         if self.runtime_lock:
-            options['runtime'] = [str(self.runtime_def)]
+            options.pop('runtime', None)
         if self.mem_lock:
-            options['memory'] = [str(self.mem_def)]
-        self.form.process(formdata=FakeMultiDict(options))
+            options.pop('memory', None)
+        self.form.process(formdata=FakeMultiDict(options),
+                          runtime=self.runtime_def,
+                          memory=self.mem_def)
         return self.form.data
 
     @property
