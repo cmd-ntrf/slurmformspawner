@@ -41,7 +41,7 @@ class SlurmFormSpawner(SlurmSpawner):
         help="Maximum amount of memory that can be requested in MB (0 means unlimited)"
         ).tag(config=True)
 
-    mem_step = Integer(256,
+    mem_step = Integer(1,
         help="Define the step of size of memory request range in MB"
         ).tag(config=True)
 
