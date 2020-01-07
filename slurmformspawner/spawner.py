@@ -20,7 +20,7 @@ class SlurmFormSpawner(SlurmSpawner):
                         ).tag(config=True)
 
     runtime_max = Float(12.0,
-                        help="Maximum runtime that can be requested in hours"
+                        help="Maximum runtime that can be requested in hours (0 means unlimited)"
                         ).tag(config=True)
 
     runtime_step = Float(0.25,
@@ -33,6 +33,10 @@ class SlurmFormSpawner(SlurmSpawner):
 
     mem_min = Integer(1024,
         help="Minimum amount of memory that can be requested in MB"
+        ).tag(config=True)
+
+    mem_max = Integer(
+        help="Maximum amount of memory that can be requested in MB (0 means unlimited)"
         ).tag(config=True)
 
     mem_step = Integer(256,

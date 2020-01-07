@@ -64,13 +64,16 @@ class SlurmSpawnerForm(Form):
             self.template = template_file.read()
 
         self.runtime.widget.min = form_params['runtime_min']
-        self.runtime.widget.max = form_params['runtime_max']
+        if form_params['runtime_max'] > 0:
+            self.runtime.widget.max = form_params['runtime_max']
         self.runtime.widget.step = form_params['runtime_step']
         self.runtime.data = form_params['runtime_def']
         if form_params['runtime_lock']:
             self.runtime.render_kw = {'disabled': 'disabled'}
 
         self.memory.widget.min = form_params['mem_min']
+        if form_params['mem_max'] > 0:
+            self.memory.widget.max = form_params['mem_max']
         self.memory.widget.step = form_params['mem_step']
         self.memory.data = form_params['mem_def']
         if form_params['mem_lock']:
