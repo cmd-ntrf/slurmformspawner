@@ -63,6 +63,13 @@ class SlurmSpawnerForm(Form):
         with open(template_path, 'r') as template_file:
             self.template = template_file.read()
 
+        self.runtime.widget.min = form_params['runtime_min']
+        self.runtime.widget.max = form_params['runtime_max']
+        self.runtime.widget.step = form_params['runtime_step']
+        self.runtime.data = form_params['runtime_def']
+        if form_params['runtime_lock']:
+            self.runtime.render_kw = {'disabled': 'disabled'}
+
         self.memory.widget.min = form_params['mem_min']
         self.memory.widget.step = form_params['mem_step']
         self.memory.data = form_params['mem_def']
@@ -74,7 +81,7 @@ class SlurmSpawnerForm(Form):
                 self[field].data = value
 
         # Convert runtime to minutes
-        if self['runtime'].data:
+        if 'runtime' in prev_values:
             self['runtime'].data = round(self['runtime'].data / 60, 2)
         self.runtime.filters = [lambda x: int(x * 60)]
 
