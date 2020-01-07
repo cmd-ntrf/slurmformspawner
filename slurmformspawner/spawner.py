@@ -28,12 +28,12 @@ class SlurmFormSpawner(SlurmSpawner):
         ).tag(config=True)
 
     form_template_path = Unicode(
-        os.path.join(sys.prefix, 'share/slurmformspawner/form.html')
+        os.path.join(sys.prefix, 'share/slurmformspawner/templates/form.html'),
         help="Path to the Jinja2 template of the form"
         ).tag(config=True)
 
     submit_template_path = Unicode(
-        os.path.join(sys.prefix, 'share/slurmformspawner/submit.sh')
+        os.path.join(sys.prefix, 'share/slurmformspawner/templates/submit.sh'),
         help="Path to the Jinja2 template of the submit file"
         ).tag(config=True)
 
