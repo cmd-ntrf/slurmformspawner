@@ -112,7 +112,7 @@ class SlurmSpawnerForm(Form):
         else:
             self.memory.data = def_
         self.memory.widget.min = min_
-        if mem_max > 0:
+        if max_ > 0:
             self.memory.widget.max = min(max_, get_slurm_mems())
         self.memory.widget.step = step
         if lock:
