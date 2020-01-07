@@ -38,7 +38,7 @@ class SlurmFormSpawner(SlurmSpawner):
         ).tag(config=True)
 
     mem_max = Integer(
-        help="Maximum amount of memory that can be requested in MB (0 means unlimited)"
+        help="Maximum amount of memory that can be requested in MB (0: limits is infered from Slurm config)"
         ).tag(config=True)
 
     mem_step = Integer(1,
@@ -51,6 +51,26 @@ class SlurmFormSpawner(SlurmSpawner):
 
     mem_lock = Bool(False,
         help="Disable user input for memory request"
+        ).tag(config=True)
+
+    core_min = Integer(1,
+        help="Minimum amount of cores that can be requested"
+        ).tag(config=True)
+
+    core_max = Integer(
+        help="Maximum amount of cores that can be requested (0: limits is infered from Slurm config)"
+        ).tag(config=True)
+
+    core_step = Integer(1,
+        help="Define the step of cores request range"
+        ).tag(config=True)
+
+    core_def = Integer(1,
+        help="Define the default amount of cores in the form"
+        ).tag(config=True)
+
+    core_lock = Bool(False,
+        help="Disable user input for core request"
         ).tag(config=True)
 
     form_template_path = Unicode(
@@ -81,6 +101,12 @@ class SlurmFormSpawner(SlurmSpawner):
         form_params['runtime']['max_'] = self.runtime_max
         form_params['runtime']['step'] = self.runtime_step
         form_params['runtime']['lock'] = self.runtime_lock
+
+        form_params['core']['def_'] = self.core_def
+        form_params['core']['min_'] = self.core_min
+        form_params['core']['max_'] = self.core_max
+        form_params['core']['step'] = self.core_step
+        form_params['core']['lock'] = self.core_lock
 
         form_params['mem']['def_'] = self.mem_def
         form_params['mem']['min_'] = self.mem_min

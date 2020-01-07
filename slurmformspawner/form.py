@@ -74,6 +74,13 @@ class SlurmSpawnerForm(Form):
                             step=form_params['runtime']['step'],
                             lock=form_params['runtime']['lock'])
 
+        self.config_core(prev=prev_values.pop('nprocs', None),
+                         def_=form_params['core']['def_'],
+                         min_=form_params['core']['min_'],
+                         max_=form_params['core']['max_'],
+                         step=form_params['core']['step'],
+                         lock=form_params['core']['lock'])
+
         self.config_memory(prev=prev_values.pop('memory', None),
                            def_=form_params['mem']['def_'],
                            min_=form_params['mem']['min_'],
@@ -106,6 +113,19 @@ class SlurmSpawnerForm(Form):
             self.runtime.render_kw = {'disabled': 'disabled'}
         self.runtime.filters = [lambda x: int(x * 60)]
 
+    def config_core(self, prev, def_, min_, max_, step, lock):
+        if prev is not None and min_ <= prev <= max_:
+            self.nprocs.data = prev
+        else:
+            self.nprocs.data = def_
+        self.nprocs.widget.min = min_
+        self.nprocs.widget.max = max(get_slurm_cpus())
+        if max_ > 0:
+            self.nprocs.widget.max = min(max_, self.nprocs.widget.max)
+        self.nprocs.widget.step = step
+        if lock:
+            self.nprocs.render_kw = {'disabled': 'disabled'}
+
     def config_memory(self, prev, def_, min_, max_, step, lock):
         if prev is not None and min_ <= prev <= max_:
             self.memory.data = prev
@@ -118,9 +138,6 @@ class SlurmSpawnerForm(Form):
         self.memory.widget.step = step
         if lock:
             self.memory.render_kw = {'disabled': 'disabled'}
-
-    def set_nproc_max(self, cpu_choices):
-        self.nprocs.widget.max = max(cpu_choices)
 
     def set_account_choices(self, accounts):
         self.account.choices = list(zip(accounts, accounts))
