@@ -81,6 +81,7 @@ class SlurmFormSpawner(SlurmSpawner):
         form_params['runtime_lock'] = self.runtime_lock
 
         form_params['mem_min'] = self.mem_min
+        form_params['mem_max'] = self.mem_max
         form_params['mem_step'] = self.mem_step
         form_params['mem_def'] = self.mem_def
         form_params['mem_lock'] = self.mem_lock
