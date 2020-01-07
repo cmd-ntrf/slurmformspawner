@@ -45,15 +45,12 @@ def get_slurm_active_reservations(username, accounts):
 
 class SlurmSpawnerForm(Form):
     account = SelectField("Account")
-    runtime = DecimalField('Time (hours)', validators=[InputRequired()],
-                           widget=NumberInput(min=0.25, max=12, step=0.25))
+    runtime = DecimalField('Time (hours)', validators=[InputRequired()], widget=NumberInput())
     gui     = RadioField('GUI',
                          choices=[('notebook', 'Jupyter Notebook'), ('lab', 'JupyterLab')],
                          default='notebook')
-    nprocs  = IntegerField('Number of cores', validators=[InputRequired()],
-                           widget=NumberInput(min=1, step=1))
-    memory  = IntegerField('Memory (MB)',  validators=[InputRequired()],
-                           widget=NumberInput())
+    nprocs  = IntegerField('Number of cores', validators=[InputRequired()], widget=NumberInput())
+    memory  = IntegerField('Memory (MB)',  validators=[InputRequired()], widget=NumberInput())
     gpus    = SelectField('GPU configuration')
     oversubscribe = BooleanField('Enable core oversubscription?')
     reservation = SelectField("Reservation")
@@ -86,6 +83,10 @@ class SlurmSpawnerForm(Form):
                            max_=form_params['mem']['max_'],
                            step=form_params['mem']['step'],
                            lock=form_params['mem']['lock'])
+
+        self.config_oversubscribe(prev=prev_values.pop('oversubscribe'),
+                                  def_=form_params['oversubscribe']['def_'],
+                                  lock=form_params['oversubscribe']['lock'])
 
         for field, value in prev_values.items():
             if value:
@@ -137,6 +138,13 @@ class SlurmSpawnerForm(Form):
         self.memory.widget.step = step
         if lock:
             self.memory.render_kw = {'disabled': 'disabled'}
+
+    def config_oversubscribe(self, prev, def_, lock):
+        if lock:
+            self.oversubscribe.data = def_
+            self.oversubscribe.render_kw = {'disabled': 'disabled'}
+        else:
+            self.oversubscribe.data = prev
 
     def set_account_choices(self, accounts):
         self.account.choices = list(zip(accounts, accounts))

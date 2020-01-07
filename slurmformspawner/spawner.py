@@ -81,6 +81,14 @@ class SlurmFormSpawner(SlurmSpawner):
         help="Disable user input for core request"
         ).tag(config=True)
 
+    oversubscribe_def = Bool(False,
+        help="Define the default value for oversubscription"
+        ).tag(config=True)
+
+    oversubscribe_lock = Bool(False,
+        help="Disable user input for oversubscription"
+        ).tag(config=True)
+
     form_template_path = Unicode(
         os.path.join(sys.prefix, 'share/slurmformspawner/templates/form.html'),
         help="Path to the Jinja2 template of the form"
@@ -122,6 +130,9 @@ class SlurmFormSpawner(SlurmSpawner):
         form_params['mem']['step'] = self.mem_step
         form_params['mem']['lock'] = self.mem_lock
 
+        form_params['oversubscribe']['def_'] = self.oversubscribe_def
+        form_params['oversubscribe']['lock'] = self.oversubscribe_lock
+
         self.form = SlurmSpawnerForm(self.user.name,
                                      self.form_template_path,
                                      form_params,
@@ -144,10 +155,15 @@ class SlurmFormSpawner(SlurmSpawner):
             options.pop('runtime', None)
         if self.mem_lock:
             options.pop('memory', None)
+        if self.core_lock:
+            options.pop('nprocs', None)
+        if self.oversubscribe_lock:
+            options.pop('oversubscribe', None)
         self.form.process(formdata=FakeMultiDict(options),
                           runtime=self.runtime_def,
                           memory=self.mem_def,
-                          nprocs=self.core_def)
+                          nprocs=self.core_def,
+                          oversubscribe=self.oversubscribe_def)
         return self.form.data
 
     @property
