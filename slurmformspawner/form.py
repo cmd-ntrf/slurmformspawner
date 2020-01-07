@@ -14,6 +14,10 @@ def get_slurm_cpus():
     cpus = check_output(['sinfo', '-h', '-e', '--format=%c'], encoding='utf-8').split()
     return list(map(int, cpus))
 
+def get_slurm_mems():
+    mems = check_output(['sinfo', '-h', '-e', '--format=%m'], encoding='utf-8').split()
+    return list(map(int, mems))
+
 def get_slurm_accounts(username):
     output = check_output(['sacctmgr', 'show', 'user', username, 'withassoc',
                            'format=account', '-p', '--noheader'], encoding='utf-8').split()
@@ -63,30 +67,23 @@ class SlurmSpawnerForm(Form):
         with open(template_path, 'r') as template_file:
             self.template = template_file.read()
 
-        self.runtime.widget.min = form_params['runtime_min']
-        if form_params['runtime_max'] > 0:
-            self.runtime.widget.max = form_params['runtime_max']
-        self.runtime.widget.step = form_params['runtime_step']
-        self.runtime.data = form_params['runtime_def']
-        if form_params['runtime_lock']:
-            self.runtime.render_kw = {'disabled': 'disabled'}
+        self.config_runtime(prev=prev_values.pop('runtime', None),
+                            def_=form_params['runtime']['def_'],
+                            min_=form_params['runtime']['min_'],
+                            max_=form_params['runtime']['max_'],
+                            step=form_params['runtime']['step'],
+                            lock=form_params['runtime']['lock'])
 
-        self.memory.widget.min = form_params['mem_min']
-        if form_params['mem_max'] > 0:
-            self.memory.widget.max = form_params['mem_max']
-        self.memory.widget.step = form_params['mem_step']
-        self.memory.data = form_params['mem_def']
-        if form_params['mem_lock']:
-            self.memory.render_kw = {'disabled': 'disabled'}
+        self.config_memory(prev=prev_values.pop('memory', None),
+                           def_=form_params['mem']['def_'],
+                           min_=form_params['mem']['min_'],
+                           max_=form_params['mem']['max_'],
+                           step=form_params['mem']['step'],
+                           lock=form_params['mem']['lock'])
 
         for field, value in prev_values.items():
             if value:
                 self[field].data = value
-
-        # Convert runtime to minutes
-        if 'runtime' in prev_values:
-            self['runtime'].data = round(self['runtime'].data / 60, 2)
-        self.runtime.filters = [lambda x: int(x * 60)]
 
     def render(self):
         accounts = get_slurm_accounts(self.username)
@@ -94,6 +91,32 @@ class SlurmSpawnerForm(Form):
         self.set_account_choices(accounts)
         self.set_reservations(reservations)
         return Template(self.template).render(form=self)
+
+    def config_runtime(self, prev, def_, min_, max_, step, lock):
+        if prev is not None and min_ <= prev <= max_:
+            # time is converted in minutes after submitting
+            self.runtime.data = round(prev / 60, 2)
+        else:
+            self.runtime.data = def_
+        self.runtime.widget.min = min_
+        if max_ > 0:
+            self.runtime.widget.max = max_
+        self.runtime.widget.step = step
+        if lock:
+            self.runtime.render_kw = {'disabled': 'disabled'}
+        self.runtime.filters = [lambda x: int(x * 60)]
+
+    def config_memory(self, prev, def_, min_, max_, step, lock):
+        if prev is not None and min_ <= prev <= max_:
+            self.memory.data = prev
+        else:
+            self.memory.data = def_
+        self.memory.widget.min = min_
+        if mem_max > 0:
+            self.memory.widget.max = min(max_, get_slurm_mems())
+        self.memory.widget.step = step
+        if lock:
+            self.memory.render_kw = {'disabled': 'disabled'}
 
     def set_nproc_max(self, cpu_choices):
         self.nprocs.widget.max = max(cpu_choices)

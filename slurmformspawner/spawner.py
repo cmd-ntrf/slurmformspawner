@@ -1,6 +1,8 @@
 import os
 import sys
 
+from collections import defaultdict
+
 from batchspawner import SlurmSpawner
 from traitlets import Integer, Bool, Unicode, Float
 
@@ -72,19 +74,19 @@ class SlurmFormSpawner(SlurmSpawner):
         if prev_opts is None:
             prev_opts = {}
 
-        form_params = {}
+        form_params = defaultdict(dict)
 
-        form_params['runtime_min'] = self.runtime_min
-        form_params['runtime_max'] = self.runtime_max
-        form_params['runtime_step'] = self.runtime_step
-        form_params['runtime_def'] = self.runtime_def
-        form_params['runtime_lock'] = self.runtime_lock
+        form_params['runtime']['def_'] = self.runtime_def
+        form_params['runtime']['min_'] = self.runtime_min
+        form_params['runtime']['max_'] = self.runtime_max
+        form_params['runtime']['step'] = self.runtime_step
+        form_params['runtime']['lock'] = self.runtime_lock
 
-        form_params['mem_min'] = self.mem_min
-        form_params['mem_max'] = self.mem_max
-        form_params['mem_step'] = self.mem_step
-        form_params['mem_def'] = self.mem_def
-        form_params['mem_lock'] = self.mem_lock
+        form_params['mem']['def_'] = self.mem_def
+        form_params['mem']['min_'] = self.mem_min
+        form_params['mem']['max_'] = self.mem_max
+        form_params['mem']['step'] = self.mem_step
+        form_params['mem']['lock'] = self.mem_lock
 
         self.form = SlurmSpawnerForm(self.user.name,
                                      self.form_template_path,
