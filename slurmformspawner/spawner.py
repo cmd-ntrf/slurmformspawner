@@ -123,7 +123,7 @@ class SlurmFormSpawner(SlurmSpawner):
             self.user_options = {
                 'runtime' : self.runtime_def,
                 'nprocs'  : self.core_def,
-                'memory'  : self.memory_def,
+                'memory'  : self.mem_def,
                 'gpus'    : self.gpus_def,
                 'oversubscribe' : self.oversubscribe_def,
             }
