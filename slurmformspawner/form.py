@@ -142,7 +142,7 @@ class SlurmSpawnerForm(Form):
         if prev:
             self.gui.data = prev
         else:
-            self.gui.data.def_
+            self.gui.data = def_
         if lock:
             self.gui.render_kw = {'disabled': 'disabled'}
 
