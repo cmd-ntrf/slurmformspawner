@@ -128,7 +128,7 @@ class SlurmSpawnerForm(Form):
         if prev is not None:
             self.gpus.data = prev
         else:
-            self.gpu.data = def_
+            self.gpus.data = def_
         if lock:
             self.gpus.render_kw = {'disabled': 'disabled'}
 

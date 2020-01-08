@@ -135,7 +135,7 @@ class SlurmFormSpawner(SlurmSpawner):
             'oversubscribe' : self.oversubscribe_def,
         }
 
-    @user_optons.setter
+    @user_options.setter
     def user_options(self, value):
         pass
 
