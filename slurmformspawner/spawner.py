@@ -213,7 +213,7 @@ class SlurmFormSpawner(SlurmSpawner):
         if self.core_def > 0:
             form_params['core']['def_'] = self.core_def
         else:
-            form_params['core']['def_'] = form_params['core']['max']
+            form_params['core']['def_'] = form_params['core']['max_']
         form_params['core']['step'] = self.core_step
         form_params['core']['lock'] = self.core_lock
 
@@ -224,7 +224,7 @@ class SlurmFormSpawner(SlurmSpawner):
         if self.mem_def > 0:
             form_params['mem']['def_'] = self.mem_def
         else:
-            form_params['mem']['def_'] = form_params['mem']['max']
+            form_params['mem']['def_'] = form_params['mem']['max_']
         form_params['mem']['step'] = self.mem_step
         form_params['mem']['lock'] = self.mem_lock
 
