@@ -119,19 +119,25 @@ class SlurmFormSpawner(SlurmSpawner):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if self.skip_form:
-            self.user_options = {
-                'runtime' : self.runtime_def,
-                'nprocs'  : self.core_def,
-                'memory'  : self.mem_def,
-                'gpus'    : self.gpus_def,
-                'oversubscribe' : self.oversubscribe_def,
-            }
-        else:
+        if not self.skip_form:
             prev_opts = self.orm_spawner.user_options
             if prev_opts is None:
                 prev_opts = {}
             self.config_form(prev_opts)
+
+    @property
+    def user_options(self):
+        return {
+            'runtime' : int(self.runtime_def * 60),
+            'nprocs'  : self.core_def,
+            'memory'  : self.mem_def,
+            'gpus'    : self.gpus_def,
+            'oversubscribe' : self.oversubscribe_def,
+        }
+
+    @user_optons.setter
+    def user_options(self, value):
+        pass
 
     @property
     def cmd(self):
