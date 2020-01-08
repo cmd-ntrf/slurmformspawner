@@ -52,7 +52,10 @@ class SlurmSpawnerForm(Form):
                                   def_=form_params['oversubscribe']['def_'],
                                   lock=form_params['oversubscribe']['lock'])
 
-        self.config_gpus(form_params['gpus']['choices'])
+        self.config_gpus(prev=prev_values.pop('gpus', None),
+                         def_=form_params['gpus']['def_'],
+                         choices=form_params['gpus']['choices'],
+                         lock=form_params['gpus']['lock'])
 
         for field, value in prev_values.items():
             if value:
@@ -108,9 +111,9 @@ class SlurmSpawnerForm(Form):
     def set_account_choices(self, accounts):
         self.account.choices = list(zip(accounts, accounts))
 
-    def config_gpus(self, gres_list):
+    def config_gpus(self, prev, def_, choices, lock):
         gpu_choices = {'gpu:0': 'None'}
-        for gres in gres_list:
+        for gres in choices:
             match = re.match(r"(gpu:[\w:]+)", gres)
             if match:
                 gres = match.group(1).split(':')
@@ -122,6 +125,12 @@ class SlurmSpawnerForm(Form):
                 for i in range(1, number + 1):
                     gpu_choices[strings[0].format(i)] = strings[1].format(i)
         self.gpus.choices = gpu_choices.items()
+        if prev is not None:
+            self.gpus.data = prev
+        else:
+            self.gpu.data = def_
+        if lock:
+            self.gpus.render_kw = {'disabled': 'disabled'}
 
     def set_reservations(self, reservation_list):
         now = datetime.now()

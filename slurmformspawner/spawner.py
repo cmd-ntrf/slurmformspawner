@@ -90,6 +90,14 @@ class SlurmFormSpawner(SlurmSpawner):
         help="Disable user input for oversubscription"
         ).tag(config=True)
 
+    gpus_def = Unicode('',
+        help="Define the default value for gpu configuration"
+        ).tag(config=True)
+
+    gpus_lock = Bool(False,
+        help="Disable user input for gpu request"
+        ).tag(config=True)
+
     form_template_path = Unicode(
         os.path.join(sys.prefix, 'share/slurmformspawner/templates/form.html'),
         help="Path to the Jinja2 template of the form"
@@ -139,6 +147,8 @@ class SlurmFormSpawner(SlurmSpawner):
         form_params['oversubscribe']['def_'] = self.oversubscribe_def
         form_params['oversubscribe']['lock'] = self.oversubscribe_lock
 
+        form_params['gpus']['def_'] = self.gpus_def
+        form_params['gpus']['lock'] = self.gpus_lock
         form_params['gpus']['choices'] = slurm.get_gres()
 
         self.form = SlurmSpawnerForm(self.form_template_path,
@@ -168,11 +178,14 @@ class SlurmFormSpawner(SlurmSpawner):
             options.pop('nprocs', None)
         if self.oversubscribe_lock:
             options.pop('oversubscribe', None)
+        if self.gpus_lock:
+            options.pop('gpus', None)
         self.form.process(formdata=FakeMultiDict(options),
                           runtime=self.runtime_def,
                           memory=self.mem_def,
                           nprocs=self.core_def,
-                          oversubscribe=self.oversubscribe_def)
+                          oversubscribe=self.oversubscribe_def,
+                          gpus=self.gpus_def)
         return self.form.data
 
     @property
