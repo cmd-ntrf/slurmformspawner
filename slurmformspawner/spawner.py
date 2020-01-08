@@ -98,6 +98,10 @@ class SlurmFormSpawner(SlurmSpawner):
         help="Disable user input for gpu request"
         ).tag(config=True)
 
+    skip_form = Bool(False,
+        help="Disable the spawner input form"
+        ).tag(config=True)
+
     form_template_path = Unicode(
         os.path.join(sys.prefix, 'share/slurmformspawner/templates/form.html'),
         help="Path to the Jinja2 template of the form"
@@ -115,10 +119,57 @@ class SlurmFormSpawner(SlurmSpawner):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        prev_opts = self.orm_spawner.user_options
-        if prev_opts is None:
-            prev_opts = {}
+        if self.skip_form:
+            self.user_options = {
+                'runtime' : self.runtime_def,
+                'nprocs'  : self.core_def,
+                'memory'  : self.memory_def,
+                'gpus'    : self.gpus_def,
+                'oversubscribe' : self.oversubscribe_def,
+            }
+        else:
+            prev_opts = self.orm_spawner.user_options
+            if prev_opts is None:
+                prev_opts = {}
+            self.config_form(prev_opts)
 
+    @property
+    def cmd(self):
+        gui = self.user_options.get('gui', '')
+        if gui == 'lab':
+            return ['jupyter-labhub']
+        else:
+            return ['jupyterhub-singleuser']
+
+    @property
+    def options_form(self):
+        if self.skip_form:
+            return None
+
+        accounts = slurm.get_accounts(self.user.name)
+        reservations = slurm.get_active_reservations(self.user.name, accounts)
+        return self.form.render(accounts, reservations)
+
+    def options_from_form(self, options):
+        if self.runtime_lock:
+            options.pop('runtime', None)
+        if self.mem_lock:
+            options.pop('memory', None)
+        if self.core_lock:
+            options.pop('nprocs', None)
+        if self.oversubscribe_lock:
+            options.pop('oversubscribe', None)
+        if self.gpus_lock:
+            options.pop('gpus', None)
+        self.form.process(formdata=FakeMultiDict(options),
+                          runtime=self.runtime_def,
+                          memory=self.mem_def,
+                          nprocs=self.core_def,
+                          oversubscribe=self.oversubscribe_def,
+                          gpus=self.gpus_def)
+        return self.form.data
+
+    def config_form(self, prev_opts):
         form_params = defaultdict(dict)
 
         form_params['runtime']['def_'] = self.runtime_def
@@ -154,39 +205,6 @@ class SlurmFormSpawner(SlurmSpawner):
         self.form = SlurmSpawnerForm(self.form_template_path,
                                      form_params,
                                      prev_opts)
-
-    @property
-    def cmd(self):
-        gui = self.user_options.get('gui', '')
-        if gui == 'lab':
-            return ['jupyter-labhub']
-        else:
-            return ['jupyterhub-singleuser']
-
-    @property
-    def options_form(self):
-        accounts = slurm.get_accounts(self.user.name)
-        reservations = slurm.get_active_reservations(self.user.name, accounts)
-        return self.form.render(accounts, reservations)
-
-    def options_from_form(self, options):
-        if self.runtime_lock:
-            options.pop('runtime', None)
-        if self.mem_lock:
-            options.pop('memory', None)
-        if self.core_lock:
-            options.pop('nprocs', None)
-        if self.oversubscribe_lock:
-            options.pop('oversubscribe', None)
-        if self.gpus_lock:
-            options.pop('gpus', None)
-        self.form.process(formdata=FakeMultiDict(options),
-                          runtime=self.runtime_def,
-                          memory=self.mem_def,
-                          nprocs=self.core_def,
-                          oversubscribe=self.oversubscribe_def,
-                          gpus=self.gpus_def)
-        return self.form.data
 
     @property
     def batch_script(self):
