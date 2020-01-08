@@ -50,8 +50,8 @@ class SlurmFormSpawner(SlurmSpawner):
         ).tag(config=True)
 
     mem_def = Integer(1024,
-        min=1,
-        help="Define the default amount of memory in the form in MB"
+        min=0,
+        help="Define the default amount of memory in the form in MB (0: maximum amounts of memory when skip_form = True)"
         ).tag(config=True)
 
     mem_lock = Bool(False,
@@ -74,8 +74,8 @@ class SlurmFormSpawner(SlurmSpawner):
         ).tag(config=True)
 
     core_def = Integer(1,
-        min=1,
-        help="Define the default amount of cores in the form"
+        min=0,
+        help="Define the default amount of cores in the form (0: maximum amounts of cores when skip_form = True)"
         ).tag(config=True)
 
     core_lock = Bool(False,
