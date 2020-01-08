@@ -12,6 +12,18 @@ from . import slurm
 class FakeMultiDict(dict):
     getlist = dict.__getitem__
 
+
+GUI_CHOICES = {
+    'notebook' : {
+        'name' : 'Jupyter Notebook',
+        'cmd' : 'jupyterhub-singleuser'
+    },
+    'lab' : {
+        'name' : 'JupyterLab',
+        'cmd' : 'jupyter-labhub'
+    }
+}
+
 class SlurmFormSpawner(SlurmSpawner):
 
     runtime_min = Float(0.25,
@@ -98,6 +110,14 @@ class SlurmFormSpawner(SlurmSpawner):
         help="Disable user input for gpu request"
         ).tag(config=True)
 
+    gui_def = Unicode(list(GUI_CHOICES.keys())[0],
+        help="Define the default gui. Possible value: [{}]".format(list(GUI_CHOICES.keys()))
+        ).tag(config=True)
+
+    gui_lock = Bool(False,
+        help="Disable user input for gui request"
+        ).tag(config=True)
+
     skip_form = Bool(False,
         help="Disable the spawner input form"
         ).tag(config=True)
@@ -145,11 +165,8 @@ class SlurmFormSpawner(SlurmSpawner):
 
     @property
     def cmd(self):
-        gui = self.user_options.get('gui', '')
-        if gui == 'lab':
-            return ['jupyter-labhub']
-        else:
-            return ['jupyterhub-singleuser']
+        gui = self.user_options.get('gui', self.gui_def)
+        return [GUI_CHOICES[gui]['cmd']]
 
     @property
     def options_form(self):
@@ -210,6 +227,10 @@ class SlurmFormSpawner(SlurmSpawner):
         form_params['gpus']['def_'] = self.gpus_def
         form_params['gpus']['lock'] = self.gpus_lock
         form_params['gpus']['choices'] = slurm.get_gres()
+
+        form_params['gui']['def_'] = self.gui_def
+        form_params['gui']['lock'] = self.gui_lock
+        form_params['gui']['choices'] = list(zip(GUI_CHOICES.keys(), (gui['name'] for gui in GUI_CHOICES.values())))
 
         self.form = SlurmSpawnerForm(self.form_template_path,
                                      form_params,
