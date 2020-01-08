@@ -130,8 +130,8 @@ class SlurmFormSpawner(SlurmSpawner):
         if self.skip_form:
             return {
                 'runtime' : int(self.runtime_def * 60),
-                'nprocs'  : self.core_def,
-                'memory'  : self.mem_def,
+                'nprocs'  : self.core_def if self.core_def > 0 else max(slurm.get_cpus()),
+                'memory'  : self.mem_def if self.mem_def > 0 else max(slurm.get_mems()),
                 'gpus'    : self.gpus_def,
                 'oversubscribe' : self.oversubscribe_def,
             }
