@@ -154,6 +154,7 @@ class SlurmFormSpawner(SlurmSpawner):
                 'memory'  : self.mem_def if self.mem_def > 0 else max(slurm.get_mems()),
                 'gpus'    : self.gpus_def,
                 'oversubscribe' : self.oversubscribe_def,
+                'gui'     : self.gui_def,
             }
         else:
             return self._user_options
@@ -205,19 +206,25 @@ class SlurmFormSpawner(SlurmSpawner):
         form_params['runtime']['step'] = self.runtime_step
         form_params['runtime']['lock'] = self.runtime_lock
 
-        form_params['core']['def_'] = self.core_def
         form_params['core']['min_'] = self.core_min
         form_params['core']['max_'] = max(slurm.get_cpus())
         if self.core_max > 0:
             form_params['core']['max_'] = min(self.core_max, form_params['core']['max_'])
+        if self.core_def > 0:
+            form_params['core']['def_'] = self.core_def
+        else:
+            form_params['core']['def_'] = form_params['core']['max']
         form_params['core']['step'] = self.core_step
         form_params['core']['lock'] = self.core_lock
 
-        form_params['mem']['def_'] = self.mem_def
         form_params['mem']['min_'] = self.mem_min
         form_params['mem']['max_'] = max(slurm.get_mems())
         if self.mem_max > 0:
             form_params['mem']['max_'] = min(self.mem_max, form_params['mem']['max_'])
+        if self.mem_def > 0:
+            form_params['mem']['def_'] = self.mem_def
+        else:
+            form_params['mem']['def_'] = form_params['mem']['max']
         form_params['mem']['step'] = self.mem_step
         form_params['mem']['lock'] = self.mem_lock
 
