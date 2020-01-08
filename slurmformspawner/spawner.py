@@ -127,17 +127,21 @@ class SlurmFormSpawner(SlurmSpawner):
 
     @property
     def user_options(self):
-        return {
-            'runtime' : int(self.runtime_def * 60),
-            'nprocs'  : self.core_def,
-            'memory'  : self.mem_def,
-            'gpus'    : self.gpus_def,
-            'oversubscribe' : self.oversubscribe_def,
-        }
+        if self.skip_form:
+            return {
+                'runtime' : int(self.runtime_def * 60),
+                'nprocs'  : self.core_def,
+                'memory'  : self.mem_def,
+                'gpus'    : self.gpus_def,
+                'oversubscribe' : self.oversubscribe_def,
+            }
+        else:
+            return self._user_options
 
     @user_options.setter
     def user_options(self, value):
-        pass
+        if not self.skip_form:
+            self._user_options = value
 
     @property
     def cmd(self):
@@ -189,7 +193,6 @@ class SlurmFormSpawner(SlurmSpawner):
         form_params['core']['max_'] = max(slurm.get_cpus())
         if self.core_max > 0:
             form_params['core']['max_'] = min(self.core_max, form_params['core']['max_'])
-        form_params['core']['max_'] = self.core_max
         form_params['core']['step'] = self.core_step
         form_params['core']['lock'] = self.core_lock
 
