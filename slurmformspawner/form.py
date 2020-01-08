@@ -67,9 +67,11 @@ class SlurmSpawnerForm(Form):
         return Template(self.template).render(form=self)
 
     def config_runtime(self, prev, def_, min_, max_, step, lock):
-        if prev is not None and min_ <= prev <= max_:
+        if prev is not None:
             # time is converted in minutes after submitting
-            self.runtime.data = round(prev / 60, 2)
+            prev = round(prev / 60, 2)
+            if min_ <= prev <= max_:
+                self.runtime.data = prev
         else:
             self.runtime.data = def_
         self.runtime.widget.min = min_
