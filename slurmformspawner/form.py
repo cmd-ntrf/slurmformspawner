@@ -1,7 +1,6 @@
 import re
 
 from datetime import datetime
-from subprocess import check_output
 
 from jinja2 import Template
 from traitlets import Integer, Unicode, Float
@@ -9,39 +8,6 @@ from wtforms import BooleanField, DecimalField, SelectField, StringField, Form, 
 from wtforms.validators import InputRequired
 from wtforms.fields.html5 import IntegerField
 from wtforms.widgets.html5 import NumberInput
-
-def get_slurm_cpus():
-    cpus = check_output(['sinfo', '-h', '-e', '--format=%c'], encoding='utf-8').split()
-    return list(map(int, cpus))
-
-def get_slurm_mems():
-    mems = check_output(['sinfo', '-h', '-e', '--format=%m'], encoding='utf-8').split()
-    return list(map(int, mems))
-
-def get_slurm_accounts(username):
-    output = check_output(['sacctmgr', 'show', 'user', username, 'withassoc',
-                           'format=account', '-p', '--noheader'], encoding='utf-8').split()
-    return [out.rstrip('|') for out in output]
-
-def get_slurm_gres():
-    return check_output(['sinfo', '-h', '--format=%G'], encoding='utf-8').split()
-
-def get_slurm_active_reservations(username, accounts):
-    accounts = set(accounts)
-    reservations = check_output(['scontrol', 'show', 'res', '-o', '--quiet'], encoding='utf-8').strip().split('\n')
-    if not reservations:
-        return []
-    reservations = [dict([item.split('=', maxsplit=1) for item in rsv.split()]) for rsv in reservations if rsv]
-    for rsv in reservations:
-        if rsv['State'] == 'ACTIVE':
-            rsv['Users'] = set(rsv['Users'].split(','))
-            rsv['Accounts'] = set(rsv['Accounts'].split(','))
-            rsv['StartTime'] = datetime.strptime(rsv['StartTime'], "%Y-%m-%dT%H:%M:%S")
-            rsv['EndTime'] = datetime.strptime(rsv['EndTime'], "%Y-%m-%dT%H:%M:%S")
-            rsv['valid'] = username in rsv['Users'] or bool(accounts.intersection(rsv['Accounts']))
-        else:
-            rsv['valid'] = False
-    return [rsv for rsv in reservations if rsv['valid']]
 
 class SlurmSpawnerForm(Form):
     account = SelectField("Account")
@@ -55,10 +21,8 @@ class SlurmSpawnerForm(Form):
     oversubscribe = BooleanField('Enable core oversubscription?')
     reservation = SelectField("Reservation")
 
-    def __init__(self, username, template_path, form_params, prev_values):
+    def __init__(self, template_path, form_params, prev_values):
         super().__init__()
-        self.username = username
-        self.set_gpu_choices(get_slurm_gres())
 
         with open(template_path, 'r') as template_file:
             self.template = template_file.read()
@@ -88,13 +52,13 @@ class SlurmSpawnerForm(Form):
                                   def_=form_params['oversubscribe']['def_'],
                                   lock=form_params['oversubscribe']['lock'])
 
+        self.config_gpus(form_params['gpus']['choices'])
+
         for field, value in prev_values.items():
             if value:
                 self[field].data = value
 
-    def render(self):
-        accounts = get_slurm_accounts(self.username)
-        reservations = get_slurm_active_reservations(self.username, accounts)
+    def render(self, accounts, reservations):
         self.set_account_choices(accounts)
         self.set_reservations(reservations)
         return Template(self.template).render(form=self)
@@ -106,8 +70,7 @@ class SlurmSpawnerForm(Form):
         else:
             self.runtime.data = def_
         self.runtime.widget.min = min_
-        if max_ > 0:
-            self.runtime.widget.max = max_
+        self.runtime.widget.max = max_
         self.runtime.widget.step = step
         if lock:
             self.runtime.render_kw = {'disabled': 'disabled'}
@@ -119,9 +82,7 @@ class SlurmSpawnerForm(Form):
         else:
             self.nprocs.data = def_
         self.nprocs.widget.min = min_
-        self.nprocs.widget.max = max(get_slurm_cpus())
-        if max_ > 0:
-            self.nprocs.widget.max = min(max_, self.nprocs.widget.max)
+        self.nprocs.widget.max = max_
         self.nprocs.widget.step = step
         if lock:
             self.nprocs.render_kw = {'disabled': 'disabled'}
@@ -132,9 +93,7 @@ class SlurmSpawnerForm(Form):
         else:
             self.memory.data = def_
         self.memory.widget.min = min_
-        self.memory.widget.max = max(get_slurm_mems())
-        if max_ > 0:
-            self.memory.widget.max = min(max_, self.memory.widget.max)
+        self.memory.widget.max = max_
         self.memory.widget.step = step
         if lock:
             self.memory.render_kw = {'disabled': 'disabled'}
@@ -149,7 +108,7 @@ class SlurmSpawnerForm(Form):
     def set_account_choices(self, accounts):
         self.account.choices = list(zip(accounts, accounts))
 
-    def set_gpu_choices(self, gres_list):
+    def config_gpus(self, gres_list):
         gpu_choices = {'gpu:0': 'None'}
         for gres in gres_list:
             match = re.match(r"(gpu:[\w:]+)", gres)

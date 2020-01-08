@@ -7,6 +7,7 @@ from batchspawner import SlurmSpawner
 from traitlets import Integer, Bool, Unicode, Float
 
 from . form import SlurmSpawnerForm
+from . import slurm
 
 class FakeMultiDict(dict):
     getlist = dict.__getitem__
@@ -114,27 +115,33 @@ class SlurmFormSpawner(SlurmSpawner):
 
         form_params['runtime']['def_'] = self.runtime_def
         form_params['runtime']['min_'] = self.runtime_min
-        form_params['runtime']['max_'] = self.runtime_max
+        form_params['runtime']['max_'] = self.runtime_max if self.runtime_max > 0 else None
         form_params['runtime']['step'] = self.runtime_step
         form_params['runtime']['lock'] = self.runtime_lock
 
         form_params['core']['def_'] = self.core_def
         form_params['core']['min_'] = self.core_min
+        form_params['core']['max_'] = max(slurm.get_cpus())
+        if self.core_max > 0:
+            form_params['core']['max_'] = min(self.core_max, form_params['core']['max_'])
         form_params['core']['max_'] = self.core_max
         form_params['core']['step'] = self.core_step
         form_params['core']['lock'] = self.core_lock
 
         form_params['mem']['def_'] = self.mem_def
         form_params['mem']['min_'] = self.mem_min
-        form_params['mem']['max_'] = self.mem_max
+        form_params['mem']['max_'] = max(slurm.get_mems())
+        if self.mem_max > 0:
+            form_params['mem']['max_'] = min(self.mem_max, form_params['mem']['max_'])
         form_params['mem']['step'] = self.mem_step
         form_params['mem']['lock'] = self.mem_lock
 
         form_params['oversubscribe']['def_'] = self.oversubscribe_def
         form_params['oversubscribe']['lock'] = self.oversubscribe_lock
 
-        self.form = SlurmSpawnerForm(self.user.name,
-                                     self.form_template_path,
+        form_params['gpus']['choices'] = slurm.get_gres()
+
+        self.form = SlurmSpawnerForm(self.form_template_path,
                                      form_params,
                                      prev_opts)
 
@@ -148,7 +155,9 @@ class SlurmFormSpawner(SlurmSpawner):
 
     @property
     def options_form(self):
-        return self.form.render()
+        accounts = slurm.get_accounts(self.user.name)
+        reservations = slurm.get_active_reservations(self.user.name, accounts)
+        return self.form.render(accounts, reservations)
 
     def options_from_form(self, options):
         if self.runtime_lock:
