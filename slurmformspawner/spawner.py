@@ -16,12 +16,12 @@ class FakeMultiDict(dict):
 GUI_CHOICES = {
     'notebook' : {
         'name' : 'Jupyter Notebook',
-        'cmd' : 'jupyterhub-singleuser'
+        'cmd' : ['jupyterhub-singleuser']
     },
     'lab' : {
         'name' : 'JupyterLab',
-        'cmd' : 'jupyter-labhub'
-    }
+        'cmd' : ['jupyter-labhub']
+    },
 }
 
 class SlurmFormSpawner(SlurmSpawner):
@@ -53,7 +53,7 @@ class SlurmFormSpawner(SlurmSpawner):
 
     mem_max = Integer(
         min=0,
-        help="Maximum amount of memory that can be requested in MB (0: limits is infered from Slurm config)"
+        help="Maximum amount of memory that can be requested in MB (0: maximum amounts of memory as configured in Slurm)"
         ).tag(config=True)
 
     mem_step = Integer(1,
@@ -63,7 +63,7 @@ class SlurmFormSpawner(SlurmSpawner):
 
     mem_def = Integer(1024,
         min=0,
-        help="Define the default amount of memory in the form in MB (0: maximum amounts of memory when skip_form = True)"
+        help="Define the default amount of memory in the form in MB (0: maximum amounts of memory as configured in Slurm)"
         ).tag(config=True)
 
     mem_lock = Bool(False,
@@ -77,7 +77,7 @@ class SlurmFormSpawner(SlurmSpawner):
 
     core_max = Integer(
         min=0,
-        help="Maximum amount of cores that can be requested (0: limits is infered from Slurm config)"
+        help="Maximum amount of cores that can be requested (0: maximum number of cores as configured in Slurm)"
         ).tag(config=True)
 
     core_step = Integer(1,
@@ -87,7 +87,7 @@ class SlurmFormSpawner(SlurmSpawner):
 
     core_def = Integer(1,
         min=0,
-        help="Define the default amount of cores in the form (0: maximum amounts of cores when skip_form = True)"
+        help="Define the default amount of cores in the form (0: maximum number of cores as configured in Slurm)"
         ).tag(config=True)
 
     core_lock = Bool(False,
@@ -167,7 +167,7 @@ class SlurmFormSpawner(SlurmSpawner):
     @property
     def cmd(self):
         gui = self.user_options.get('gui', self.gui_def)
-        return [GUI_CHOICES[gui]['cmd']]
+        return GUI_CHOICES[gui]['cmd']
 
     @property
     def options_form(self):
