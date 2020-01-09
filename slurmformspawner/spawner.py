@@ -13,7 +13,7 @@ class FakeMultiDict(dict):
     getlist = dict.__getitem__
 
 
-GUI_CHOICES = {
+UI_CHOICES = {
     'notebook' : {
         'name' : 'Jupyter Notebook',
         'cmd' : ['jupyterhub-singleuser']
@@ -114,12 +114,12 @@ class SlurmFormSpawner(SlurmSpawner):
         help="Disable user input for gpu request"
         ).tag(config=True)
 
-    gui_def = Unicode(list(GUI_CHOICES.keys())[0],
-        help="Define the default gui. Possible value: [{}]".format(list(GUI_CHOICES.keys()))
+    ui_def = Unicode(list(UI_CHOICES.keys())[0],
+        help="Define the default user interface. Possible value: [{}]".format(list(UI_CHOICES.keys()))
         ).tag(config=True)
 
-    gui_lock = Bool(False,
-        help="Disable user input for gui request"
+    ui_lock = Bool(False,
+        help="Disable user input for user interface request"
         ).tag(config=True)
 
     skip_form = Bool(False,
@@ -158,7 +158,7 @@ class SlurmFormSpawner(SlurmSpawner):
                 'memory'  : self.mem_def if self.mem_def > 0 else max(slurm.get_mems()),
                 'gpus'    : self.gpus_def,
                 'oversubscribe' : self.oversubscribe_def,
-                'gui'     : self.gui_def,
+                'ui'     : self.ui_def,
             }
         else:
             return self._user_options
@@ -170,8 +170,8 @@ class SlurmFormSpawner(SlurmSpawner):
 
     @property
     def cmd(self):
-        gui = self.user_options.get('gui', self.gui_def)
-        return GUI_CHOICES[gui]['cmd']
+        ui = self.user_options.get('ui', self.ui_def)
+        return UI_CHOICES[ui]['cmd']
 
     @property
     def options_form(self):
@@ -239,9 +239,9 @@ class SlurmFormSpawner(SlurmSpawner):
         form_params['gpus']['lock'] = self.gpus_lock
         form_params['gpus']['choices'] = slurm.get_gres()
 
-        form_params['gui']['def_'] = self.gui_def
-        form_params['gui']['lock'] = self.gui_lock
-        form_params['gui']['choices'] = list(zip(GUI_CHOICES.keys(), (gui['name'] for gui in GUI_CHOICES.values())))
+        form_params['ui']['def_'] = self.ui_def
+        form_params['ui']['lock'] = self.ui_lock
+        form_params['ui']['choices'] = list(zip(UI_CHOICES.keys(), (ui['name'] for ui in UI_CHOICES.values())))
 
         self.form = SlurmSpawnerForm(self.form_template_path,
                                      form_params,

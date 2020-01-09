@@ -12,7 +12,7 @@ from wtforms.widgets.html5 import NumberInput
 class SlurmSpawnerForm(Form):
     account = SelectField("Account")
     runtime = DecimalField('Time (hours)', validators=[InputRequired()], widget=NumberInput())
-    gui     = RadioField('GUI')
+    ui      = SelectField('User interface')
     nprocs  = IntegerField('Number of cores', validators=[InputRequired()], widget=NumberInput())
     memory  = IntegerField('Memory (MB)',  validators=[InputRequired()], widget=NumberInput())
     gpus    = SelectField('GPU configuration')
@@ -55,10 +55,10 @@ class SlurmSpawnerForm(Form):
                          choices=form_params['gpus']['choices'],
                          lock=form_params['gpus']['lock'])
 
-        self.config_gui(prev=prev_values.pop('gui', None),
-                        def_=form_params['gui']['def_'],
-                        choices=form_params['gui']['choices'],
-                        lock=form_params['gui']['lock'])
+        self.config_ui(prev=prev_values.pop('ui', None),
+                        def_=form_params['ui']['def_'],
+                        choices=form_params['ui']['choices'],
+                        lock=form_params['ui']['lock'])
 
         for field, value in prev_values.items():
             if value:
@@ -137,14 +137,14 @@ class SlurmSpawnerForm(Form):
         if lock:
             self.gpus.render_kw = {'disabled': 'disabled'}
 
-    def config_gui(self, prev, def_, choices, lock):
-        self.gui.choices = choices
+    def config_ui(self, prev, def_, choices, lock):
+        self.ui.choices = choices
         if prev:
-            self.gui.data = prev
+            self.ui.data = prev
         else:
-            self.gui.data = def_
+            self.ui.data = def_
         if lock:
-            self.gui.render_kw = {'disabled': 'disabled'}
+            self.ui.render_kw = {'disabled': 'disabled'}
 
     def set_reservations(self, reservation_list):
         now = datetime.now()
