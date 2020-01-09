@@ -61,7 +61,7 @@ class SlurmSpawnerForm(Form):
                         lock=form_params['ui']['lock'])
 
         for field, value in prev_values.items():
-            if value:
+            if value and field in self:
                 self[field].data = value
 
     def render(self, accounts, reservations):
