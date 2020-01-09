@@ -65,7 +65,7 @@ class SlurmFormSpawner(SlurmSpawner):
         help="Define the step of size of memory request range in MB"
         ).tag(config=True)
 
-    mem_def = Integer(1024,
+    mem_def = Integer(0,
         min=0,
         help="Define the default amount of memory in the form in MB (0: maximum amounts of memory as configured in Slurm)"
         ).tag(config=True)
@@ -89,7 +89,7 @@ class SlurmFormSpawner(SlurmSpawner):
         help="Define the step of cores request range"
         ).tag(config=True)
 
-    core_def = Integer(1,
+    core_def = Integer(0,
         min=0,
         help="Define the default amount of cores in the form (0: maximum number of cores as configured in Slurm)"
         ).tag(config=True)

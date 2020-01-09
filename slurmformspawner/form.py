@@ -78,7 +78,8 @@ class SlurmSpawnerForm(Form):
         else:
             self.runtime.data = def_
         self.runtime.widget.min = min_
-        self.runtime.widget.max = max_
+        if max_ > 0:
+            self.runtime.widget.max = max_
         self.runtime.widget.step = step
         if lock:
             self.runtime.render_kw = {'disabled': 'disabled'}
