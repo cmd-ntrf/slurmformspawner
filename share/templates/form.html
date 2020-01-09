@@ -16,9 +16,19 @@
         </div>
     </div>
 </div>
-<div class="form-group">
-    {{ form.nprocs.label }}
-    {{ form.nprocs(class_="form-control") }}
+<div class="row">
+    <div class="col">
+        <div class="form-group col-md-6">
+            {{ form.nprocs.label }}
+            {{ form.nprocs(class_="form-control") }}
+        </div>
+    </div>
+    <div class="col">
+        <div class="form-group col-md-6">
+            {{ form.memory.label }}
+            {{ form.memory(class_="form-control") }}
+        </div>
+    </div>
 </div>
 <div class="form-group">
     <div class="form-check">
@@ -26,10 +36,6 @@
         {{ form.oversubscribe.label(class_="form-check-label") }}
         <small id="overs_help" class="form-text text-muted">Recommended for interactive usage</small>
     </div>
-</div>
-<div class="form-group">
-    {{ form.memory.label }}
-    {{ form.memory(class_="form-control") }}
 </div>
 <div class="form-group">
     {{ form.gpus.label }}
