@@ -73,13 +73,12 @@ class SlurmSpawnerForm(Form):
         if prev is not None:
             # time is converted in minutes after submitting
             prev = round(prev / 60, 2)
-            if min_ <= prev <= max_:
+            if min_ <= prev and (max_ is None or prev <= max_):
                 self.runtime.data = prev
         else:
             self.runtime.data = def_
         self.runtime.widget.min = min_
-        if max_ > 0:
-            self.runtime.widget.max = max_
+        self.runtime.widget.max = max_
         self.runtime.widget.step = step
         if lock:
             self.runtime.render_kw = {'disabled': 'disabled'}
