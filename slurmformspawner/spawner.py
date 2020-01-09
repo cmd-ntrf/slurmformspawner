@@ -22,6 +22,10 @@ GUI_CHOICES = {
         'name' : 'JupyterLab',
         'cmd' : ['jupyter-labhub']
     },
+    'terminal' : {
+        'name' : 'Terminal',
+        'cmd' : ['jupyterhub-singleuser', '--SingleUserNotebookApp.default_url=/terminals/1']
+    },
 }
 
 class SlurmFormSpawner(SlurmSpawner):
