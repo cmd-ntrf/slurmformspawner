@@ -193,12 +193,15 @@ class SlurmFormSpawner(SlurmSpawner):
             options.pop('oversubscribe', None)
         if self.gpus_lock:
             options.pop('gpus', None)
+        if self.ui_lock:
+            options.pop('ui', None)
         self.form.process(formdata=FakeMultiDict(options),
                           runtime=self.runtime_def,
                           memory=self.mem_def,
                           nprocs=self.core_def,
                           oversubscribe=self.oversubscribe_def,
-                          gpus=self.gpus_def)
+                          gpus=self.gpus_def,
+                          ui=self.ui_def)
         return self.form.data
 
     def config_form(self, prev_opts):
