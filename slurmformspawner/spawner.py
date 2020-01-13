@@ -86,7 +86,7 @@ class SlurmFormSpawner(SlurmSpawner):
 
     core_step = Integer(1,
         min=1,
-        help="Define the step of cores request range"
+        help="Define the step of core request range"
         ).tag(config=True)
 
     core_def = Integer(0,
