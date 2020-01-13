@@ -6,7 +6,7 @@ from collections import defaultdict
 from batchspawner import SlurmSpawner
 from traitlets import Integer, Bool, Unicode, Float
 
-from . form import SlurmSpawnerForm
+from . form import AdvancedOptionForm
 from . import slurm
 
 class FakeMultiDict(dict):
@@ -246,9 +246,7 @@ class SlurmFormSpawner(SlurmSpawner):
         form_params['ui']['lock'] = self.ui_lock
         form_params['ui']['choices'] = list(zip(UI_CHOICES.keys(), (ui['name'] for ui in UI_CHOICES.values())))
 
-        self.form = SlurmSpawnerForm(self.form_template_path,
-                                     form_params,
-                                     prev_opts)
+        self.form = AdvancedOptionForm(self.form_template_path, form_params, prev_opts)
 
     @property
     def batch_script(self):

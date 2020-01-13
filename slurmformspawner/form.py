@@ -9,7 +9,7 @@ from wtforms.validators import InputRequired
 from wtforms.fields.html5 import IntegerField
 from wtforms.widgets.html5 import NumberInput
 
-class SlurmSpawnerForm(Form):
+class AdvancedOptionForm(Form):
     account = SelectField("Account")
     runtime = DecimalField('Time (hours)', validators=[InputRequired()], widget=NumberInput())
     ui      = SelectField('User interface')
