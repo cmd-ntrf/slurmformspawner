@@ -29,8 +29,8 @@ JupyterHub SlurmSpawner with a dynamic spawn form
 | `c.SlurmFormSpawner.ui_def`       | `Unicode` | Default user interface. Choices: `['notebook', 'lab', 'terminal']` | `'notebook'` |
 | `c.SlurmFormSpawner.ui_lock`      | `Bool` | Disable user input for user interface request | `False` |
 | `c.SlurmFormSpawner.skip_form`    | `Bool` | Disable the spawner input form, use only default values instead | `False` |
-| `c.SlurmFormSpawner.form_template_path` | `Unicode` | Path to the Jinja2 template of the form | `os.path.join(sys.prefix, 'share',  'slurmformspawner', 'form.html')` |
-| `c.SlurmFormSpawner.submit_template_path` | `Unicode` | Path to the Jinja2 template of the submit file | `os.path.join(sys.prefix, 'share', 'slurmformspawner', 'submit.sh')` |
+| `c.SlurmFormSpawner.form_template_path` | `Unicode` | Path to the Jinja2 template of the form | `os.path.join(sys.prefix, 'share',  'slurmformspawner', 'templates', 'form.html')` |
+| `c.SlurmFormSpawner.submit_template_path` | `Unicode` | Path to the Jinja2 template of the submit file | `os.path.join(sys.prefix, 'share', 'slurmformspawner', 'templates', 'submit.sh')` |
 
 ## screenshot
 
