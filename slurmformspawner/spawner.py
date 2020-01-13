@@ -4,7 +4,7 @@ import sys
 from collections import defaultdict
 
 from batchspawner import SlurmSpawner
-from traitlets import Integer, Bool, Unicode, Float
+from traitlets import Integer, Bool, Unicode, Float, Set
 
 from . form import AdvancedOptionForm
 from . import slurm

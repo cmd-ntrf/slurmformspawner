@@ -3,7 +3,6 @@ import re
 from datetime import datetime
 
 from jinja2 import Template
-from traitlets import Integer, Unicode, Float
 from wtforms import BooleanField, DecimalField, SelectField, StringField, Form, RadioField
 from wtforms.validators import InputRequired
 from wtforms.fields.html5 import IntegerField
