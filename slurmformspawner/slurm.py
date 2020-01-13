@@ -15,7 +15,7 @@ def get_accounts(username):
     return [out.rstrip('|') for out in output]
 
 def get_gres():
-    return check_output(['sinfo', '-h', '--format=%G'], encoding='utf-8').split()
+    return ['gpu:0'] + check_output(['sinfo', '-h', '--format=%G'], encoding='utf-8').split()
 
 def get_active_reservations(username, accounts):
     accounts = set(accounts)

@@ -106,6 +106,10 @@ class SlurmFormSpawner(SlurmSpawner):
         help="Disable user input for oversubscription"
         ).tag(config=True)
 
+    gpus_choices = Set(
+        help="Subset of options for gpu configuration. Example: {'gpu:k20:1', 'gpu:k80:1'}"
+        ).tag(config=True)
+
     gpus_def = Unicode('',
         help="Define the default value for gpu configuration"
         ).tag(config=True)
@@ -240,7 +244,10 @@ class SlurmFormSpawner(SlurmSpawner):
 
         form_params['gpus']['def_'] = self.gpus_def
         form_params['gpus']['lock'] = self.gpus_lock
-        form_params['gpus']['choices'] = slurm.get_gres()
+        if self.gpus_choices:
+            form_params['gpus']['choices'] = self.gpu_choices.intersection(slurm.get_gres())
+        else:
+            form_params['gpus']['choices'] = slurm.get_gres()
 
         form_params['ui']['def_'] = self.ui_def
         form_params['ui']['lock'] = self.ui_lock

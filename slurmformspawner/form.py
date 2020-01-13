@@ -117,7 +117,10 @@ class AdvancedOptionForm(Form):
         self.account.choices = list(zip(accounts, accounts))
 
     def config_gpus(self, prev, def_, choices, lock):
-        gpu_choices = {'gpu:0': 'None'}
+        gpu_choices = {}
+        if 'gpu:0' in choices:
+            gpu_choices['gpu:0'] = 'None'
+            choices.remove('gpu:0')
         for gres in choices:
             match = re.match(r"(gpu:[\w:]+)", gres)
             if match:
