@@ -245,7 +245,7 @@ class SlurmFormSpawner(SlurmSpawner):
         form_params['gpus']['def_'] = self.gpus_def
         form_params['gpus']['lock'] = self.gpus_lock
         if self.gpus_choices:
-            form_params['gpus']['choices'] = self.gpu_choices.intersection(slurm.get_gres())
+            form_params['gpus']['choices'] = self.gpus_choices.intersection(slurm.get_gres())
         else:
             form_params['gpus']['choices'] = slurm.get_gres()
 
