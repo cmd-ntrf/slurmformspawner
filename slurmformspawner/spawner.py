@@ -119,7 +119,7 @@ class SlurmFormSpawner(SlurmSpawner):
         ).tag(config=True)
 
     ui_def = Unicode(list(UI_CHOICES.keys())[0],
-        help="Define the default user interface. Possible value: [{}]".format(list(UI_CHOICES.keys()))
+        help="Define the default user interface. Choices: [{}]".format(list(UI_CHOICES.keys()))
         ).tag(config=True)
 
     ui_lock = Bool(False,
@@ -131,12 +131,12 @@ class SlurmFormSpawner(SlurmSpawner):
         ).tag(config=True)
 
     form_template_path = Unicode(
-        os.path.join(sys.prefix, 'share/slurmformspawner/templates/form.html'),
+        os.path.join(sys.prefix, 'share', 'slurmformspawner', 'templates', 'form.html'),
         help="Path to the Jinja2 template of the form"
         ).tag(config=True)
 
     submit_template_path = Unicode(
-        os.path.join(sys.prefix, 'share/slurmformspawner/templates/submit.sh'),
+        os.path.join(sys.prefix, 'share', 'slurmformspawner', 'templates', 'submit.sh'),
         help="Path to the Jinja2 template of the submit file"
         ).tag(config=True)
 
