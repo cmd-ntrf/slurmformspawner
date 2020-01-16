@@ -23,7 +23,7 @@ setup_args = dict(
         'Programming Language :: Python :: 3',
     ],
     install_requires   = [
-      'batchspawner>=0.9.0',
+      'batchspawner>=0.9.0.dev0',
       'WTForms>=2.2.1',
       'jinja2>=2.10.1'
     ],
