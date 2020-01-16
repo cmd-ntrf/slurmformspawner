@@ -4,7 +4,7 @@ import sys
 from collections import defaultdict
 
 from batchspawner import SlurmSpawner
-from traitlets import Integer, Bool, Unicode, Float, Set
+from traitlets import Integer, CBool, Unicode, Float, Set
 
 from . form import AdvancedOptionForm
 from . import slurm
@@ -46,7 +46,7 @@ class SlurmFormSpawner(SlurmSpawner):
                         help="Runtime increment that can be requested in hours"
                         ).tag(config=True)
 
-    runtime_lock = Bool(False,
+    runtime_lock = CBool(False,
                         help="Disable user input for runtime"
                         ).tag(config=True)
 
@@ -70,7 +70,7 @@ class SlurmFormSpawner(SlurmSpawner):
         help="Define the default amount of memory in the form in MB (0: maximum amounts of memory as configured in Slurm)"
         ).tag(config=True)
 
-    mem_lock = Bool(False,
+    mem_lock = CBool(False,
         help="Disable user input for memory request"
         ).tag(config=True)
 
@@ -94,15 +94,15 @@ class SlurmFormSpawner(SlurmSpawner):
         help="Define the default amount of cores in the form (0: maximum number of cores as configured in Slurm)"
         ).tag(config=True)
 
-    core_lock = Bool(False,
+    core_lock = CBool(False,
         help="Disable user input for core request"
         ).tag(config=True)
 
-    oversubscribe_def = Bool(False,
+    oversubscribe_def = CBool(False,
         help="Define the default value for oversubscription"
         ).tag(config=True)
 
-    oversubscribe_lock = Bool(False,
+    oversubscribe_lock = CBool(False,
         help="Disable user input for oversubscription"
         ).tag(config=True)
 
@@ -114,7 +114,7 @@ class SlurmFormSpawner(SlurmSpawner):
         help="Define the default value for gpu configuration"
         ).tag(config=True)
 
-    gpus_lock = Bool(False,
+    gpus_lock = CBool(False,
         help="Disable user input for gpu request"
         ).tag(config=True)
 
@@ -122,11 +122,11 @@ class SlurmFormSpawner(SlurmSpawner):
         help="Define the default user interface. Choices: [{}]".format(list(UI_CHOICES.keys()))
         ).tag(config=True)
 
-    ui_lock = Bool(False,
+    ui_lock = CBool(False,
         help="Disable user input for user interface request"
         ).tag(config=True)
 
-    skip_form = Bool(False,
+    skip_form = CBool(False,
         help="Disable the spawner input form"
         ).tag(config=True)
 
