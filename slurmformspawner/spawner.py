@@ -20,7 +20,7 @@ UI_CHOICES = {
     },
     'lab' : {
         'name' : 'JupyterLab',
-        'cmd' : ['jupyter-labhub']
+        'cmd' : ['jupyterhub-singleuser', '--SingleUserNotebookApp.default_url=/lab']
     },
     'terminal' : {
         'name' : 'Terminal',
