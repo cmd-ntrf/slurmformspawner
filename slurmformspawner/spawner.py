@@ -16,15 +16,14 @@ class FakeMultiDict(dict):
 UI_CHOICES = {
     'notebook' : {
         'name' : 'Jupyter Notebook',
-        'cmd' : ['jupyterhub-singleuser']
     },
     'lab' : {
         'name' : 'JupyterLab',
-        'cmd' : ['jupyterhub-singleuser', '--SingleUserNotebookApp.default_url=/lab']
+        'args' : ['--SingleUserNotebookApp.default_url=/lab']
     },
     'terminal' : {
         'name' : 'Terminal',
-        'cmd' : ['jupyterhub-singleuser', '--SingleUserNotebookApp.default_url=/terminals/1']
+        'args' : ['--SingleUserNotebookApp.default_url=/terminals/1']
     },
 }
 
@@ -173,9 +172,9 @@ class SlurmFormSpawner(SlurmSpawner):
             self._user_options = value
 
     @property
-    def cmd(self):
+    def args(self):
         ui = self.user_options.get('ui', self.ui_def)
-        return UI_CHOICES[ui]['cmd']
+        return UI_CHOICES[ui].get('args', [])
 
     @property
     def options_form(self):
