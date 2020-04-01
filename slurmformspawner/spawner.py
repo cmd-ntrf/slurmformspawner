@@ -146,6 +146,7 @@ class SlurmFormSpawner(SlurmSpawner):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self._user_options = {}
         if not self.skip_form:
             prev_opts = self.orm_spawner.user_options
             if prev_opts is None:
