@@ -172,10 +172,10 @@ class SlurmFormSpawner(SlurmSpawner):
         if not self.skip_form:
             self._user_options = value
 
-    @property
-    def args(self):
+    def get_args(self):
+        args = super().get_args()
         ui = self.user_options.get('ui', self.ui_def)
-        return UI_CHOICES[ui].get('args', [])
+        return args + UI_CHOICES[ui].get('args', [])
 
     @property
     def options_form(self):
