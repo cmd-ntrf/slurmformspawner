@@ -139,6 +139,18 @@ class SlurmFormSpawner(SlurmSpawner):
         help="Path to the Jinja2 template of the submit file"
         ).tag(config=True)
 
+    slurm_info_cache_ttl = Integer(slurm.INFO_CACHE_TTL,
+        help="TTL in seconds between two calls to retrieve cluster nodes information with sinfo"
+        ).tag(config=True)
+
+    slurm_acct_cache_ttl = Integer(slurm.ACCT_CACHE_TTL,
+        help="TTL in seconds between two calls to retrieve user account information with sacctmgr"
+        ).tag(config=True)
+
+    slurm_res_cache_ttl = Integer(slurm.RES_CACHE_TTL,
+        help="TTL in seconds between two calls to retrieve the list of reservations with scontrol"
+        ).tag(config=True)
+
     exec_prefix = ""
     env_keep = []
     batch_submit_cmd = "sudo --preserve-env={keepvars} -u {username} sbatch --parsable"
@@ -146,12 +158,12 @@ class SlurmFormSpawner(SlurmSpawner):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._user_options = {}
+        self._user_options = self.orm_spawner.user_options or {}
+        slurm.set_acct_cache_ttl(self.slurm_acct_cache_ttl)
+        slurm.set_info_cache_ttl(self.slurm_info_cache_ttl)
+        slurm.set_res_cache_ttl(self.slurm_res_cache_ttl)
         if not self.skip_form:
-            prev_opts = self.orm_spawner.user_options
-            if prev_opts is None:
-                prev_opts = {}
-            self.config_form(prev_opts)
+            self.config_form(self._user_options)
 
     @property
     def user_options(self):
