@@ -193,6 +193,9 @@ class SlurmFormSpawner(SlurmSpawner):
     def options_form(self):
         if self.skip_form:
             return None
+        
+        if self.form:
+            return "<bold>Scheduler is currenly offline.</bold>"
 
         accounts = slurm.get_accounts(self.user.name)
         reservations = slurm.get_active_reservations(self.user.name, accounts)
@@ -223,6 +226,12 @@ class SlurmFormSpawner(SlurmSpawner):
     def config_form(self, prev_opts):
         form_params = defaultdict(dict)
 
+        system_cpu_choices = slurm.get_cpus()
+        system_mem_choices = slurm.get_mems()
+        system_gpu_choices = slurm.get_gres()
+        if len(system_cpu_choices) == 0 or len(system_mem_choices) == 0:
+            self.form = None
+
         form_params['runtime']['def_'] = self.runtime_def
         form_params['runtime']['min_'] = self.runtime_min
         form_params['runtime']['max_'] = self.runtime_max if self.runtime_max > 0 else None
@@ -230,7 +239,7 @@ class SlurmFormSpawner(SlurmSpawner):
         form_params['runtime']['lock'] = self.runtime_lock
 
         form_params['core']['min_'] = self.core_min
-        form_params['core']['max_'] = max(slurm.get_cpus())
+        form_params['core']['max_'] = max(system_cpu_choices)
         if self.core_max > 0:
             form_params['core']['max_'] = min(self.core_max, form_params['core']['max_'])
         if self.core_def > 0:
@@ -241,7 +250,7 @@ class SlurmFormSpawner(SlurmSpawner):
         form_params['core']['lock'] = self.core_lock
 
         form_params['mem']['min_'] = self.mem_min
-        form_params['mem']['max_'] = max(slurm.get_mems())
+        form_params['mem']['max_'] = max(system_mem_choices)
         if self.mem_max > 0:
             form_params['mem']['max_'] = min(self.mem_max, form_params['mem']['max_'])
         if self.mem_def > 0:
@@ -257,9 +266,9 @@ class SlurmFormSpawner(SlurmSpawner):
         form_params['gpus']['def_'] = self.gpus_def
         form_params['gpus']['lock'] = self.gpus_lock
         if self.gpus_choices:
-            form_params['gpus']['choices'] = self.gpus_choices.intersection(slurm.get_gres())
+            form_params['gpus']['choices'] = self.gpus_choices.intersection(system_gpu_choices)
         else:
-            form_params['gpus']['choices'] = slurm.get_gres()
+            form_params['gpus']['choices'] = system_gpu_choices
 
         form_params['ui']['def_'] = self.ui_def
         form_params['ui']['lock'] = self.ui_lock
