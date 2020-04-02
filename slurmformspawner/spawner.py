@@ -134,6 +134,11 @@ class SlurmFormSpawner(SlurmSpawner):
         help="Path to the Jinja2 template of the form"
         ).tag(config=True)
 
+    error_template_path = Unicode(
+        os.path.join(sys.prefix, 'share', 'slurmformspawner', 'templates', 'error.html'),
+        help="Path to the Jinja2 template of the form when there is a problem with Slurm"
+        ).tag(config=True)
+
     submit_template_path = Unicode(
         os.path.join(sys.prefix, 'share', 'slurmformspawner', 'templates', 'submit.sh'),
         help="Path to the Jinja2 template of the submit file"
@@ -195,7 +200,8 @@ class SlurmFormSpawner(SlurmSpawner):
             return None
         
         if self.form is None:
-            return "<b>Scheduler is currenly offline.</b><script>$('input').remove()</script>"
+            with open(self.error_template_path, 'r') as file_:
+                return file_.read()
 
         accounts = slurm.get_accounts(self.user.name)
         reservations = slurm.get_active_reservations(self.user.name, accounts)
