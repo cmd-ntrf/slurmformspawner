@@ -1,8 +1,14 @@
 # slurmformspawner
 JupyterHub SlurmSpawner with a dynamic spawn form
 
-## Configuration
+## Requirements
 
+- Python >= 3.6
+- JupyterHub >= 1.0
+- batchspawner>=0.9.0.dev0
+- cachetools
+
+## Configuration
 
 | Variable                          | Type    | Description                                     | Default |
 | --------------------------------- | :------ | :---------------------------------------------- | ------- |

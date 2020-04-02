@@ -1,124 +1,258 @@
+import os
 import re
+import sys
 
+from functools import partial
 from datetime import datetime
 
 from jinja2 import Template
+
+from traitlets.config.configurable import Configurable
+from traitlets import Integer, CBool, Unicode, Float, Set, Dict, Unicode
+
+from jupyterhub.traitlets import Callable
+
 from wtforms import BooleanField, DecimalField, SelectField, StringField, Form, RadioField
-from wtforms.validators import InputRequired
+from wtforms.form import BaseForm
+from wtforms.validators import InputRequired, NumberRange, AnyOf
 from wtforms.fields.html5 import IntegerField
 from wtforms.widgets.html5 import NumberInput
 
-class AdvancedOptionForm(Form):
-    account = SelectField("Account")
-    runtime = DecimalField('Time (hours)', validators=[InputRequired()], widget=NumberInput())
-    ui      = SelectField('User interface')
-    nprocs  = IntegerField('Number of cores', validators=[InputRequired()], widget=NumberInput())
-    memory  = IntegerField('Memory (MB)',  validators=[InputRequired()], widget=NumberInput())
-    gpus    = SelectField('GPU configuration')
-    oversubscribe = BooleanField('Enable core oversubscription?')
-    reservation = SelectField("Reservation")
+from . traitlets import NumericRangeWidget, SelectWidget
 
-    def __init__(self, template_path, form_params, prev_values):
-        super().__init__()
+class FakeMultiDict(dict):
+    getlist = dict.__getitem__
 
-        with open(template_path, 'r') as template_file:
+def resolve(value, *args, **kargs):
+    if callable(value):
+        return value(*args, **kargs)
+    else:
+        return value
+
+class SbatchForm(Configurable):
+
+    runtime = NumericRangeWidget(
+        {
+            'min' : 0.25,
+            'def' : 1.0,
+            'step': 0.25,
+            'lock': False,
+        },
+        help="Define parameters of runtime numeric range widget"
+    ).tag(config=True)
+
+    memory = NumericRangeWidget(
+        {
+            'min' : 1024,
+            'step': 1,
+            'lock': False,
+            'def': lambda api, user: int(max(api.get_mems()) / max(api.get_cpus())),
+            'max': lambda api, user: max(api.get_mems())
+        },
+        help="Define parameters of memory numeric range widget in MB"
+    ).tag(config=True)
+
+    nprocs = NumericRangeWidget(
+        {
+            'min' : 1,
+            'step': 1,
+            'lock': False,
+            'def': 1,
+            'max' : lambda api, user: max(api.get_cpus())
+        },
+        help="Define parameters of core numeric range widget"
+    ).tag(config=True)
+
+    oversubscribe = Dict({'def' : False, 'lock' : True}).tag(config=True)
+
+    gpus = SelectWidget(
+        {
+            'def' : 'gpu:0',
+            'choices' : lambda api, user: api.get_gres(),
+            'lock' : False
+        },
+        help="Define the list of available gpu configurations."
+    ).tag(config=True)
+
+    account = SelectWidget(
+        {
+            'def' : lambda api, user: api.get_accounts(user)[0],
+            'choices' : lambda api, user: api.get_accounts(user),
+            'lock' : False
+        },
+        help="Define the list of available accounts."
+    ).tag(config=True)
+
+    reservation = SelectWidget(
+        {
+            'def' : '',
+            'choices' : lambda api, user: api.get_active_reservations(user, api.get_accounts(user)),
+            'lock' : False
+        },
+        help="Define the list of available reservations."
+    ).tag(config=True)
+
+    ui = SelectWidget(
+        {
+            'lock' : False,
+            'def' : 'lab',
+            'choices' : ['notebook', 'lab', 'terminal']
+        },
+        help="Define the list of available user interface."
+    ).tag(config=True)
+
+    form_template_path = Unicode(
+        os.path.join(sys.prefix, 'share', 'slurmformspawner', 'templates', 'form.html'),
+        help="Path to the Jinja2 template of the form"
+    ).tag(config=True)
+
+    def __init__(self, username, slurm_api, ui_args, user_options = {}, config=None):
+        super().__init__(config=config)
+        fields = {
+            'account' : SelectField("Account", validators=[AnyOf([])]),
+            'runtime' : DecimalField('Time (hours)', validators=[InputRequired(), NumberRange()], widget=NumberInput()),
+            'ui'      : SelectField('User interface', validators=[AnyOf([])]),
+            'nprocs'  : IntegerField('Number of cores', validators=[InputRequired(), NumberRange()], widget=NumberInput()),
+            'memory'  : IntegerField('Memory (MB)',  validators=[InputRequired(), NumberRange()], widget=NumberInput()),
+            'gpus'    : SelectField('GPU configuration', validators=[AnyOf([])]),
+            'oversubscribe' : BooleanField('Enable core oversubscription?'),
+            'reservation' : SelectField("Reservation", validators=[AnyOf([])])
+        }
+        self.form = BaseForm(fields)
+        self.form['runtime'].filters = [float]
+        self.resolve = partial(resolve, api=slurm_api, user=username)
+        self.ui_args = ui_args
+
+        with open(self.form_template_path, 'r') as template_file:
             self.template = template_file.read()
 
-        self.config_runtime(prev=prev_values.pop('runtime', None),
-                            def_=form_params['runtime']['def_'],
-                            min_=form_params['runtime']['min_'],
-                            max_=form_params['runtime']['max_'],
-                            step=form_params['runtime']['step'],
-                            lock=form_params['runtime']['lock'])
+        for key in fields:
+            dict_ = getattr(self, key)
+            if dict_.get('lock') is True:
+                if dict_.get('def') is None:
+                    raise Exception(f'You need to define a default value for {key} because it is locked.')
+            if key in user_options:
+                self.form[key].process(formdata=FakeMultiDict({key : [user_options[key]]}))
+            else:
+                self.form[key].process(formdata=FakeMultiDict({key : [self.resolve(getattr(self, key).get('def'))]}))
 
-        self.config_core(prev=prev_values.pop('nprocs', None),
-                         def_=form_params['core']['def_'],
-                         min_=form_params['core']['min_'],
-                         max_=form_params['core']['max_'],
-                         step=form_params['core']['step'],
-                         lock=form_params['core']['lock'])
+    @property
+    def data(self):
+        return self.form.data
 
-        self.config_memory(prev=prev_values.pop('memory', None),
-                           def_=form_params['mem']['def_'],
-                           min_=form_params['mem']['min_'],
-                           max_=form_params['mem']['max_'],
-                           step=form_params['mem']['step'],
-                           lock=form_params['mem']['lock'])
+    @property
+    def errors(self):
+        return self.form.errors
 
-        self.config_oversubscribe(prev=prev_values.pop('oversubscribe', None),
-                                  def_=form_params['oversubscribe']['def_'],
-                                  lock=form_params['oversubscribe']['lock'])
+    def process(self, formdata):
+        for key in self.form._fields.keys():
+            lock = self.resolve(getattr(self, key).get('lock'))
+            value = formdata.get(key)
+            if not lock and value is not None:
+                self.form[key].process(formdata=FakeMultiDict({key : value}))
 
-        self.config_gpus(prev=prev_values.pop('gpus', None),
-                         def_=form_params['gpus']['def_'],
-                         choices=form_params['gpus']['choices'],
-                         lock=form_params['gpus']['lock'])
+    def validate(self):
+        valid = True
+        for key in self.form._fields.keys():
+            lock = self.resolve(getattr(self, key).get('lock'))
+            if not lock:
+                valid = self.form[key].validate(self.form) and valid
+        return valid
 
-        self.config_ui(prev=prev_values.pop('ui', None),
-                        def_=form_params['ui']['def_'],
-                        choices=form_params['ui']['choices'],
-                        lock=form_params['ui']['lock'])
+    def render(self):
+        self.config_runtime()
+        self.config_nprocs()
+        self.config_memory()
+        self.config_oversubscribe()
+        self.config_ui()
+        self.config_gpus()
+        self.config_reservations()
+        self.config_account()
+        return Template(self.template).render(form=self.form)
 
-        for field, value in prev_values.items():
-            if value and field in self:
-                self[field].data = value
-
-    def render(self, accounts, reservations):
-        self.set_account_choices(accounts)
-        self.set_reservations(reservations)
-        return Template(self.template).render(form=self)
-
-    def config_runtime(self, prev, def_, min_, max_, step, lock):
-        if prev is not None:
-            # time is converted in minutes after submitting
-            prev = round(prev / 60, 2)
-            if min_ <= prev and (max_ is None or prev <= max_):
-                self.runtime.data = prev
+    def config_runtime(self):
+        lock = self.resolve(self.runtime.get('lock'))
+        if lock:
+            def_ = self.resolve(self.runtime.get('def'))
+            self.form['runtime'].render_kw = {'disabled': 'disabled'}
+            self.form['runtime'].widget.min = def_
+            self.form['runtime'].widget.max = def_
+            self.form['runtime'].validators[-1].min = def_
+            self.form['runtime'].validators[-1].max = def_
+            self.form['runtime'].validators[-1].message = f'Runtime can only be {def_}'
         else:
-            self.runtime.data = def_
-        self.runtime.widget.min = min_
-        self.runtime.widget.max = max_
-        self.runtime.widget.step = step
-        if lock:
-            self.runtime.render_kw = {'disabled': 'disabled'}
-        self.runtime.filters = [lambda x: int(x * 60)]
+            min_ = self.resolve(self.runtime.get('min'))
+            max_ = self.resolve(self.runtime.get('max'))
+            step = self.resolve(self.runtime.get('step'))
+            self.form['runtime'].widget.min = min_
+            self.form['runtime'].widget.max = max_
+            self.form['runtime'].widget.step = step
+            if min_ is not None:
+                self.form['runtime'].validators[-1].min = min_
+            if max_ is not None:
+                self.form['runtime'].validators[-1].max = max_
+            self.form['runtime'].validators[-1].message = f'Runtime outside of allowed range [{min_}, {max_}]'
 
-    def config_core(self, prev, def_, min_, max_, step, lock):
-        if prev is not None and min_ <= prev <= max_:
-            self.nprocs.data = prev
+    def config_nprocs(self):
+        lock = self.resolve(self.nprocs.get('lock'))
+        if lock:
+            def_ = self.resolve(self.nprocs.get('def'))
+            self.form['nprocs'].render_kw = {'disabled': 'disabled'}
+            self.form['nprocs'].widget.min = def_
+            self.form['nprocs'].widget.max = def_
+            self.form['nprocs'].validators[-1].min = def_
+            self.form['nprocs'].validators[-1].max = def_
         else:
-            self.nprocs.data = def_
-        self.nprocs.widget.min = min_
-        self.nprocs.widget.max = max_
-        self.nprocs.widget.step = step
-        if lock:
-            self.nprocs.render_kw = {'disabled': 'disabled'}
+            min_ = self.resolve(self.nprocs.get('min'))
+            max_ = self.resolve(self.nprocs.get('max'))
+            step = self.resolve(self.nprocs.get('step'))
+            self.form['nprocs'].widget.min = min_
+            self.form['nprocs'].widget.max = max_
+            self.form['nprocs'].widget.step = step
+            self.form['nprocs'].validators[-1].min = min_
+            self.form['nprocs'].validators[-1].max = max_
 
-    def config_memory(self, prev, def_, min_, max_, step, lock):
-        if prev is not None and min_ <= prev <= max_:
-            self.memory.data = prev
+    def config_memory(self):
+        lock = self.resolve(self.memory.get('lock'))
+        if lock:
+            def_ = self.resolve(self.memory.get('def'))
+            self.form['memory'].render_kw = {'disabled': 'disabled'}
+            self.form['memory'].widget.min = def_
+            self.form['memory'].widget.max = def_
+            self.form['memory'].validators[-1].min = def_
+            self.form['memory'].validators[-1].max = def_
         else:
-            self.memory.data = def_
-        self.memory.widget.min = min_
-        self.memory.widget.max = max_
-        self.memory.widget.step = step
+            min_ = self.resolve(self.memory.get('min'))
+            max_ = self.resolve(self.memory.get('max'))
+            step = self.resolve(self.memory.get('step'))
+            self.form['memory'].widget.min = min_
+            self.form['memory'].widget.max = max_
+            self.form['memory'].widget.step = step
+            self.form['memory'].validators[-1].min = min_
+            self.form['memory'].validators[-1].max = max_
+
+    def config_oversubscribe(self):
+        if self.oversubscribe['lock']:
+            self.form['oversubscribe'].render_kw = {'disabled': 'disabled'}
+
+    def config_account(self):
+        choices = self.resolve(self.account.get('choices'))
+        lock = self.resolve(self.account.get('lock'))
+
+        self.form['account'].choices = list(zip(choices, choices))
+        self.form['account'].validators[-1].values = choices
+        if not hasattr(self.form['account'], 'data'):
+            self.form['account'].process_data(self.form['account'].choices[0])
         if lock:
-            self.memory.render_kw = {'disabled': 'disabled'}
+            self.form['account'].render_kw = {'disabled': 'disabled'}
 
-    def config_oversubscribe(self, prev, def_, lock):
-        self.oversubscribe.data = def_
-        if lock:
-            self.oversubscribe.render_kw = {'disabled': 'disabled'}
-        elif prev is not None:
-            self.oversubscribe.data = prev
+    def config_gpus(self):
+        choices = self.resolve(self.gpus.get('choices'))
+        lock = self.resolve(self.gpus.get('lock'))
 
-    def set_account_choices(self, accounts):
-        self.account.choices = list(zip(accounts, accounts))
-
-    def config_gpus(self, prev, def_, choices, lock):
-        gpu_choices = {}
+        gpu_choice_map = {}
         if 'gpu:0' in choices:
-            gpu_choices['gpu:0'] = 'None'
+            gpu_choice_map['gpu:0'] = 'None'
             choices.remove('gpu:0')
         for gres in choices:
             match = re.match(r"(gpu:[\w:]+)", gres)
@@ -130,30 +264,38 @@ class AdvancedOptionForm(Form):
                 elif len(gres) > 2:
                     strings = ('gpu:{}:{{}}'.format(gres[1]), '{{}} x {}'.format(gres[1].upper()))
                 for i in range(1, number + 1):
-                    gpu_choices[strings[0].format(i)] = strings[1].format(i)
-        self.gpus.choices = gpu_choices.items()
-        if prev is not None:
-            self.gpus.data = prev
-        else:
-            self.gpus.data = def_
+                    gpu_choice_map[strings[0].format(i)] = strings[1].format(i)
+        self.form['gpus'].choices = gpu_choice_map.items()
         if lock:
-            self.gpus.render_kw = {'disabled': 'disabled'}
+            self.form['gpus'].render_kw = {'disabled': 'disabled'}
+        self.form['gpus'].validators[-1].values = [key for key, value in self.form['gpus'].choices]
 
-    def config_ui(self, prev, def_, choices, lock):
-        self.ui.choices = choices
-        if prev:
-            self.ui.data = prev
-        else:
-            self.ui.data = def_
+    def config_ui(self):
+        choices = self.resolve(self.ui.get('choices'))
+        lock = self.resolve(self.ui.get('lock'))
+        self.form['ui'].validators[-1].values = [key for key in choices]
+        self.form['ui'].choices = [(key, self.ui_args[key]['name']) for key in choices]
+
         if lock:
-            self.ui.render_kw = {'disabled': 'disabled'}
+            self.form['ui'].render_kw = {'disabled': 'disabled'}
 
-    def set_reservations(self, reservation_list):
+    def config_reservations(self):
+        choices = self.resolve(self.reservation.get('choices'))
+        lock = self.resolve(self.reservation.get('lock'))
+        prev = self.form['reservation'].data
+        if choices is None:
+            choices = []
+
         now = datetime.now()
-        choices = [("", "None")]
-        for rsv in reservation_list:
+        prev_is_valid = False
+        self.form['reservation'].choices = [("", "None")]
+        for rsv in choices:
             name = rsv['ReservationName']
             duration = rsv['EndTime'] - now
             string = '{} - time left: {}'.format(name, duration)
-            choices.append((name, string))
-        self.reservation.choices = choices
+            self.form['reservation'].choices.append((name, string))
+            if prev == name:
+                prev_is_valid = True
+        if lock:
+            self.form['reservation'].render_kw = {'disabled': 'disabled'}
+        self.form['reservation'].validators[-1].values = [key for key, value in self.form['reservation'].choices]

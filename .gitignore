@@ -2,4 +2,5 @@ build/
 dist/
 .DS_Store
 */__pycache__/
-venv/
+*env/
+*.egg-info/
