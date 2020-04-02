@@ -167,8 +167,6 @@ class SlurmFormSpawner(SlurmSpawner):
         slurm.set_acct_cache_ttl(self.slurm_acct_cache_ttl)
         slurm.set_info_cache_ttl(self.slurm_info_cache_ttl)
         slurm.set_res_cache_ttl(self.slurm_res_cache_ttl)
-        if not self.skip_form:
-            self.config_form(self._user_options)
 
     @property
     def user_options(self):
@@ -198,7 +196,8 @@ class SlurmFormSpawner(SlurmSpawner):
     def options_form(self):
         if self.skip_form:
             return None
-        
+
+        self.config_form(self._user_options)
         if self.form is None:
             with open(self.error_template_path, 'r') as file_:
                 return file_.read()
