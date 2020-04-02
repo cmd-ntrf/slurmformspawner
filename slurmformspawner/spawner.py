@@ -195,7 +195,7 @@ class SlurmFormSpawner(SlurmSpawner):
             return None
         
         if self.form:
-            return "<bold>Scheduler is currenly offline.</bold>"
+            return "<b>Scheduler is currenly offline.</b><script>$('input').remove()</script>"
 
         accounts = slurm.get_accounts(self.user.name)
         reservations = slurm.get_active_reservations(self.user.name, accounts)
@@ -231,6 +231,7 @@ class SlurmFormSpawner(SlurmSpawner):
         system_gpu_choices = slurm.get_gres()
         if len(system_cpu_choices) == 0 or len(system_mem_choices) == 0:
             self.form = None
+            return
 
         form_params['runtime']['def_'] = self.runtime_def
         form_params['runtime']['min_'] = self.runtime_min
