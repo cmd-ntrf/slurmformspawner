@@ -6,7 +6,7 @@ from setuptools import setup
 setup_args = dict(
     name                = 'slurmformspawner',
     packages            = ['slurmformspawner'],
-    version             = "1.2.2",
+    version             = "1.3.0",
     description         = "slurmformspawner: JupyterHub SlurmSpawner with a dynamic spawn form",
     author              = "Félix-Antoine Fortin",
     author_email        = "felix-antoine.fortin@calculquebec.ca",
@@ -25,10 +25,12 @@ setup_args = dict(
     install_requires   = [
       'batchspawner>=0.9.0.dev0',
       'WTForms>=2.2.1',
-      'jinja2>=2.10.1'
+      'jinja2>=2.10.1',
+      'cachetools'
     ],
     data_files = [('share/slurmformspawner/templates', ['share/templates/submit.sh',
-                                                        'share/templates/form.html'])]
+                                                        'share/templates/form.html',
+                                                        'share/templates/error.html'])]
 )
 
 def main():
