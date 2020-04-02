@@ -29,7 +29,7 @@ setup_args = dict(
       'cachetools'
     ],
     data_files = [('share/slurmformspawner/templates', ['share/templates/submit.sh',
-                                                        'share/templates/form.html'
+                                                        'share/templates/form.html',
                                                         'share/templates/error.html'])]
 )
 
