@@ -194,7 +194,7 @@ class SlurmFormSpawner(SlurmSpawner):
         if self.skip_form:
             return None
         
-        if self.form:
+        if self.form is None:
             return "<b>Scheduler is currenly offline.</b><script>$('input').remove()</script>"
 
         accounts = slurm.get_accounts(self.user.name)
