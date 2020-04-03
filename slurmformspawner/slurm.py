@@ -32,7 +32,7 @@ def set_res_cache_ttl(ttl):
 def get_node_info():
     output = {'cpu': [], 'mem': [], 'gres': []}
     try:
-        infos = check_output(['sinfo', '-h', '-e', 
+        infos = check_output(['sinfo', '-h', '-e',
                               '--format={"cpu":%c,"mem":%m,"gres":"%G"}'], encoding='utf-8')
     except CalledProcessError:
         return output
@@ -77,6 +77,13 @@ def get_reservations():
             reservations = reservations.strip().split('\n')
         else:
             reservations = []
+
+    reservations = [dict([item.split('=', maxsplit=1) for item in res.split()]) for res in reservations if res]
+    for res in reservations:
+        res['Users'] = set(res['Users'].split(','))
+        res['Accounts'] = set(res['Accounts'].split(','))
+        res['StartTime'] = datetime.strptime(res['StartTime'], "%Y-%m-%dT%H:%M:%S")
+        res['EndTime'] = datetime.strptime(res['EndTime'], "%Y-%m-%dT%H:%M:%S")
     return reservations
 
 def get_active_reservations(username, accounts):
@@ -85,14 +92,15 @@ def get_active_reservations(username, accounts):
         return []
 
     accounts = set(accounts)
-    reservations = [dict([item.split('=', maxsplit=1) for item in res.split()]) for res in reservations if res]
-    for res in reservations:
-        if res['State'] == 'ACTIVE':
-            res['Users'] = set(res['Users'].split(','))
-            res['Accounts'] = set(res['Accounts'].split(','))
-            res['StartTime'] = datetime.strptime(res['StartTime'], "%Y-%m-%dT%H:%M:%S")
-            res['EndTime'] = datetime.strptime(res['EndTime'], "%Y-%m-%dT%H:%M:%S")
-            res['valid'] = username in res['Users'] or bool(accounts.intersection(res['Accounts']))
-        else:
-            res['valid'] = False
-    return [res for res in reservations if res['valid']]
+    active_res = []
+    now = datetime.now()
+    return [
+        res for res in reservations
+        if (
+            res['StartTime'] <= now <= res['EndTime'] and
+            (
+                username in res['Users'] or
+                bool(accounts.intersection(res['Accounts']))
+            )
+        )
+    ]
