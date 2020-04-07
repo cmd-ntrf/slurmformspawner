@@ -6,7 +6,7 @@ from setuptools import setup
 setup_args = dict(
     name                = 'slurmformspawner',
     packages            = ['slurmformspawner'],
-    version             = "1.3.0",
+    version             = "2.0.0",
     description         = "slurmformspawner: JupyterHub SlurmSpawner with a dynamic spawn form",
     author              = "Félix-Antoine Fortin",
     author_email        = "felix-antoine.fortin@calculquebec.ca",
