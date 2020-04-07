@@ -9,10 +9,10 @@ from subprocess import check_output, CalledProcessError
 from cachetools import TTLCache, cachedmethod
 
 class SlurmAPI(SingletonConfigurable):
-    info_cache_ttl = Integer(100).tag(config=True)
-    acct_cache_ttl = Integer(60).tag(config=True)
+    info_cache_ttl = Integer(300).tag(config=True)
+    acct_cache_ttl = Integer(300).tag(config=True)
     acct_cache_size = Integer(100).tag(config=True)
-    res_cache_ttl = Integer(60).tag(config=True)
+    res_cache_ttl = Integer(300).tag(config=True)
 
     def __init__(self, config=None):
         super().__init__(config=config)
