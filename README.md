@@ -7,6 +7,7 @@ JupyterHub SlurmSpawner with a dynamic spawn form
 - JupyterHub >= 1.0
 - batchspawner>=0.9.0.dev0
 - cachetools
+- traitlets
 
 ## Configuration
 
@@ -32,7 +33,6 @@ JupyterHub SlurmSpawner with a dynamic spawn form
 | `c.SbatchForm.ui`  | `Dict({'def', 'choices', 'lock'})` | User interface widget parameters | refer to `form.py`  |
 | `c.SbatchForm.reservation`  | `Dict({'def', 'choices', 'lock'})` | Reservation widget parameters | refer to `form.py`  |
 | `c.SbatchForm.account`  | `Dict({'def', 'choices', 'lock'})` | Account widget parameters | refer to `form.py`  |
-
 
 ### SlurmAPI
 
