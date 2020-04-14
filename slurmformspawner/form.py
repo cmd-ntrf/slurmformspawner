@@ -251,10 +251,10 @@ class SbatchForm(Configurable):
         lock = self.resolve(self.gpus.get('lock'))
 
         gpu_choice_map = {}
-        if 'gpu:0' in choices:
-            gpu_choice_map['gpu:0'] = 'None'
-            choices.remove('gpu:0')
         for gres in choices:
+            if gres == 'gpu:0':
+                gpu_choice_map['gpu:0'] = 'None'
+                continue
             match = re.match(r"(gpu:[\w:]+)", gres)
             if match:
                 gres = match.group(1).split(':')
