@@ -32,6 +32,11 @@ class SlurmFormSpawner(SlurmSpawner):
         help="Dictionary of dictionaries describing the names and args of UI options"
     ).tag(config=True)
 
+    slurm_bin_path = Unicode(
+        '/opt/slurm/bin',
+        help="Absolute path to Slurm executables"
+    ).tag(config=True)
+
     submit_template_path = Unicode(
         os.path.join(sys.prefix, 'share', 'slurmformspawner', 'templates', 'submit.sh'),
         help="Path to the Jinja2 template of the submit file"
@@ -44,8 +49,8 @@ class SlurmFormSpawner(SlurmSpawner):
 
     exec_prefix = ""
     env_keep = []
-    batch_submit_cmd = "sudo --preserve-env={keepvars} -u {username} sbatch --parsable"
-    batch_cancel_cmd = "sudo -u {username} scancel {job_id}"
+    batch_submit_cmd = "sudo --preserve-env={keepvars} -u {username} {slurm_bin_path}/sbatch --parsable"
+    batch_cancel_cmd = "sudo -u {username} {slurm_bin_path}/scancel {job_id}"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -56,6 +61,17 @@ class SlurmFormSpawner(SlurmSpawner):
                                ui_args=self.ui_args,
                                user_options=self.orm_spawner.user_options or {},
                                config=self.config)
+
+        self.batch_submit_cmd = self.batch_submit_cmd.format(
+            username='{username}',
+            keepvars='{keepvars}',
+            slurm_bin_path=self.slurm_bin_path
+        )
+        self.batch_cancel_cmd = self.batch_cancel_cmd.format(
+            username='{username}',
+            job_id='{job_id}',
+            slurm_bin_path=self.slurm_bin_path
+        )
 
         with open(self.error_template_path, 'r') as file_:
             self.error_form = file_.read()
