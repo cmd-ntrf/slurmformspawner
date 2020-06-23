@@ -265,7 +265,7 @@ class SbatchForm(Configurable):
                     strings = ('gpu:{}:{{}}'.format(gres[1]), '{{}} x {}'.format(gres[1].upper()))
                 for i in range(1, number + 1):
                     gpu_choice_map[strings[0].format(i)] = strings[1].format(i)
-        self.form['gpus'].choices = gpu_choice_map.items()
+        self.form['gpus'].choices = list(gpu_choice_map.items())
         if lock:
             self.form['gpus'].render_kw = {'disabled': 'disabled'}
         self.form['gpus'].validators[-1].values = [key for key, value in self.form['gpus'].choices]

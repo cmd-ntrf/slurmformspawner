@@ -24,7 +24,7 @@ setup_args = dict(
     ],
     install_requires   = [
       'batchspawner>=0.9.0.dev0',
-      'WTForms==2.2.1',
+      'WTForms==2.3.1',
       'jinja2>=2.10.1',
       'cachetools'
     ],
