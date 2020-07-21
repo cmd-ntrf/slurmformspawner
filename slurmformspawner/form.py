@@ -76,7 +76,6 @@ class SbatchForm(Configurable):
 
     account = SelectWidget(
         {
-            'def' : lambda api, user: api.get_accounts(user)[0],
             'choices' : lambda api, user: api.get_accounts(user),
             'lock' : False
         },
