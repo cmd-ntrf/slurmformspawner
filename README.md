@@ -16,7 +16,6 @@ JupyterHub SlurmSpawner with a dynamic spawn form
 | Variable                          | Type    | Description                                     | Default |
 | --------------------------------- | :------ | :---------------------------------------------- | ------- |
 | `c.SlurmFormSpawner.disable_form`    | `CBool` | Disable the spawner input form, use only default values instead | `False` |
-| `c.SlurmFormSpawner.form_template_path` | `Unicode` | Path to the Jinja2 template of the form | `os.path.join(sys.prefix, 'share',  'slurmformspawner', 'templates', 'form.html')` |
 | `c.SlurmFormSpawner.error_template_path` | `Unicode` | Path to the Jinja2 template of the error page | `os.path.join(sys.prefix, 'share',  'slurmformspawner', 'templates', 'error.html')` |
 | `c.SlurmFormSpawner.submit_template_path` | `Unicode` | Path to the Jinja2 template of the submit file | `os.path.join(sys.prefix, 'share', 'slurmformspawner', 'templates', 'submit.sh')` |
 | `c.SlurmFormSpawner.ui_args` | `Dict` | Dictionary of dictionaries describing the names and args of UI options | refer to `spawner.py` |
@@ -33,6 +32,7 @@ JupyterHub SlurmSpawner with a dynamic spawn form
 | `c.SbatchForm.ui`  | `Dict({'def', 'choices', 'lock'})` | User interface widget parameters | refer to `form.py`  |
 | `c.SbatchForm.reservation`  | `Dict({'def', 'choices', 'lock'})` | Reservation widget parameters | refer to `form.py`  |
 | `c.SbatchForm.account`  | `Dict({'def', 'choices', 'lock'})` | Account widget parameters | refer to `form.py`  |
+| `c.SbatchForm.form_template_path` | `Unicode` | Path to the Jinja2 template of the form | `os.path.join(sys.prefix, 'share',  'slurmformspawner', 'templates', 'form.html')` |
 
 ### SlurmAPI
 
