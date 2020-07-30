@@ -83,6 +83,8 @@ class SlurmFormSpawner(SlurmSpawner):
     def user_options(self):
         options = self.form.data.copy()
         options['runtime'] = int(options['runtime'] * 60)
+        ui = self.form.data.get('ui')
+        options['modules'] = self.ui_args[ui].get('modules', [])
         return options
 
     @user_options.setter

@@ -18,7 +18,33 @@ JupyterHub SlurmSpawner with a dynamic spawn form
 | `c.SlurmFormSpawner.disable_form`    | `CBool` | Disable the spawner input form, use only default values instead | `False` |
 | `c.SlurmFormSpawner.error_template_path` | `Unicode` | Path to the Jinja2 template of the error page | `os.path.join(sys.prefix, 'share',  'slurmformspawner', 'templates', 'error.html')` |
 | `c.SlurmFormSpawner.submit_template_path` | `Unicode` | Path to the Jinja2 template of the submit file | `os.path.join(sys.prefix, 'share', 'slurmformspawner', 'templates', 'submit.sh')` |
-| `c.SlurmFormSpawner.ui_args` | `Dict` | Dictionary of dictionaries describing the names and args of UI options | refer to `spawner.py` |
+| `c.SlurmFormSpawner.ui_args` | `Dict` | Dictionary of dictionaries describing the UI options | refer to `ui_args` section |
+
+#### `ui_args`
+
+`ui_args` is a dictionary where the keys are labels that will be re-used in `SbatchForm.ui` and the values are dictionnaries describing how to launch the user interface.
+Each option dictionary can have the following keys:
+- `name` (required): string that will appear in the Spawner form
+- `args` (optional): list of flags and options that will be appended to jupyter single-user command that should redirect to the UI.
+- `modules` (optional): list of module names that needs to be loaded to make the user interface work
+
+Here is an example of a dictionary that would configure Jupyter Notebook, a terminal and RStudio.
+```
+c.SlurmFormSpawner.ui_args = {
+    'notebook' : {
+        'name': 'Jupyter Notebook'
+    },
+    'terminal' : {
+        'name': 'Terminal',
+        'args': ['--SingleUserNotebookApp.default_url=/terminal/1']
+    },
+    'rstudio' : {
+        'name': 'RStudio',
+        'args': ['--SingleUserNotebookApp.default_url=/rstudio'],
+        'modules': ['rstudio-server']
+    }
+}
+```
 
 ### SbatchForm
 

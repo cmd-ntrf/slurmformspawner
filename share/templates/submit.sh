@@ -23,6 +23,10 @@ export PATH="/opt/jupyterhub/bin:${PATH}"
 export PATH=${PIP_PREFIX}/bin:${PATH}
 export PYTHONPATH=${SITE}:${PYTHONPATH}
 
+{% if modules %}
+module load {{modules|join(' ')}}
+{% endif %}
+
 # Activate kernel virtual environment
 export VIRTUAL_ENV_DISABLE_PROMPT=1
 source /opt/ipython-kernel/bin/activate
