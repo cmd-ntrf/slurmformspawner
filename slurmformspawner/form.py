@@ -245,7 +245,6 @@ class SbatchForm(Configurable):
             if lock:
                 self.form['account'].render_kw = {'disabled': 'disabled'}
         else:
-            self.account['lock'] = True
             self.form['account'].choices = [("", "None")]
             self.form['account'].validators[-1].values = [("", "None")]
             self.form['account'].render_kw = {'disabled': 'disabled'}
