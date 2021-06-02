@@ -53,13 +53,11 @@ class SlurmAPI(SingletonConfigurable):
     @cachedmethod(attrgetter('acct_cache'))
     def get_accounts(self, username):
         try:
-            accounts = check_output(['sacctmgr', 'show', 'user', username, 'withassoc',
-                                    'format=account', '-p', '--noheader'], encoding='utf-8')
+            string = check_output(['sacctmgr', 'show', 'user', username, 'withassoc',
+                                    'format=account', '-P', '--noheader'], encoding='utf-8')
         except CalledProcessError:
-            accounts = []
-        else:
-            accounts = accounts.split()
-        return [account.rstrip('|') for account in accounts]
+            return []
+        return string.split()
 
     @cachedmethod(attrgetter('res_cache'))
     def get_reservations(self):
