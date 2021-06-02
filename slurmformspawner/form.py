@@ -235,18 +235,17 @@ class SbatchForm(Configurable):
             self.form['oversubscribe'].render_kw = {'disabled': 'disabled'}
 
     def config_account(self):
-        choices = self.resolve(self.account.get('choices'))
-        lock = self.resolve(self.account.get('lock'))
-        if choices:
-            self.form['account'].choices = list(zip(choices, choices))
-            self.form['account'].validators[-1].values = choices
-            if not hasattr(self.form['account'], 'data'):
-                self.form['account'].process_data(self.form['account'].choices[0])
-            if lock:
-                self.form['account'].render_kw = {'disabled': 'disabled'}
+        keys = self.resolve(self.account.get('choices'))
+        if keys:
+            choices = list(zip(keys, keys))
         else:
-            self.form['account'].choices = [("", "None")]
-            self.form['account'].validators[-1].values = [("", "None")]
+            keys = [""]
+            choices = [("", "None")]
+
+        self.form['account'].choices = choices
+        self.form['account'].validators[-1].values = keys
+
+        if self.resolve(self.account.get('lock')):
             self.form['account'].render_kw = {'disabled': 'disabled'}
 
     def config_gpus(self):
