@@ -24,14 +24,21 @@ class SlurmAPI(SingletonConfigurable):
     def get_node_info(self):
         output = {'cpu': [], 'mem': [], 'gres': []}
         try:
-            infos = check_output(['sinfo', '-h', '-e',
-                                '--format={"cpu":%c,"mem":%m,"gres":"%G"}'], encoding='utf-8')
+            controls = check_output(['scontrol', '-o', 'show', 'node'], encoding='utf-8')
         except CalledProcessError:
             return output
         else:
-            infos = [loads(i) for i in infos.split('\n') if i]
-            infos = {key: [dict_[key] for dict_ in infos] for key in infos[0]}
-        return infos
+            nodes = [
+                dict([
+                    item.split('=', 1) for item in line.split(' ') if '=' in item
+                ])
+                for line in controls.split("\n") if line
+            ]
+            for node in nodes:
+                output['cpu'].append(int(node['CPUTot']))
+                output['mem'].append(int(node['RealMemory']) - int(node.get('MemSpecLimit', '0')))
+                output['gres'].append(node['Gres'])
+        return output
 
     def is_online(self):
         return self.get_node_info()['cpu'] and self.get_node_info()['mem']
