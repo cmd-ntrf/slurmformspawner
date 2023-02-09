@@ -82,7 +82,11 @@ class SlurmFormSpawner(SlurmSpawner):
             self.batch_script = script_template.read()
 
     def cmd_formatted_for_batch(self):
-        if self.form.data['netns'] and self.batchspawner_portwrap_path is not None:
+        if (
+            self.form.data.get('netns', False) and
+            self.batchspawner_portwrap_path and
+            self.portwrap_path
+        ):
             return " ".join(
                 [
                     self.batchspawner_singleuser_cmd,
