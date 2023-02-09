@@ -75,8 +75,6 @@ class SlurmFormSpawner(SlurmSpawner):
             slurm_bin_path=self.slurm_bin_path
         )
 
-        self.spawner_cmd = self.cmd.copy()
-
         with open(self.error_template_path, 'r') as file_:
             self.error_form = file_.read()
 
