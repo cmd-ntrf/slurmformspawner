@@ -63,6 +63,8 @@ class SbatchForm(Configurable):
 
     oversubscribe = Dict({'def' : False, 'lock' : True}).tag(config=True)
 
+    netns = Dict({'def' : True, 'lock' : False}).tag(config=True)
+
     gpus = SelectWidget(
         {
             'def' : 'gpu:0',
@@ -113,7 +115,8 @@ class SbatchForm(Configurable):
             'memory'  : IntegerField('Memory (MB)',  validators=[InputRequired(), NumberRange()], widget=NumberInput()),
             'gpus'    : SelectField('GPU configuration', validators=[AnyOf([])]),
             'oversubscribe' : BooleanField('Enable core oversubscription?'),
-            'reservation' : SelectField("Reservation", validators=[AnyOf([])])
+            'reservation' : SelectField("Reservation", validators=[AnyOf([])]),
+            'netns' : BooleanField('Isolate servers in a dedicated networking namespace ?'),
         }
         self.form = BaseForm(fields)
         self.form['runtime'].filters = [float]
@@ -165,6 +168,7 @@ class SbatchForm(Configurable):
         self.config_gpus()
         self.config_reservations()
         self.config_account()
+        self.config_netns()
         return Template(self.template).render(form=self.form)
 
     def config_runtime(self):
@@ -231,6 +235,10 @@ class SbatchForm(Configurable):
     def config_oversubscribe(self):
         if self.oversubscribe['lock']:
             self.form['oversubscribe'].render_kw = {'disabled': 'disabled'}
+
+    def config_netns(self):
+        if self.netns['lock']:
+            self.form['netns'].render_kw = {'disabled': 'disabled'}
 
     def config_account(self):
         keys = self.resolve(self.account.get('choices'))
