@@ -121,7 +121,7 @@ class SbatchForm(Configurable):
             'gpus'    : SelectField('GPU configuration', validators=[AnyOf([])]),
             'oversubscribe' : BooleanField('Enable core oversubscription?'),
             'reservation' : SelectField("Reservation", validators=[AnyOf([])]),
-            'netns' : BooleanField('Isolate servers in a dedicated networking namespace ?'),
+            'netns' : BooleanField('Sandbox child processes networking ?'),
         }
         self.form = BaseForm(fields)
         self.form['runtime'].filters = [float]
