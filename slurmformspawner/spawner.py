@@ -36,6 +36,8 @@ class SlurmFormSpawner(SlurmSpawner):
         help="Absolute path to Slurm executables"
     ).tag(config=True)
 
+    batchspawner_portwrap_path = Unicode().tag(config=True)
+
     submit_template_path = Unicode(
         os.path.join(sys.prefix, 'share', 'slurmformspawner', 'templates', 'submit.sh'),
         help="Path to the Jinja2 template of the submit file"
@@ -72,6 +74,8 @@ class SlurmFormSpawner(SlurmSpawner):
             slurm_bin_path=self.slurm_bin_path
         )
 
+        self.spawner_cmd = self.cmd.copy()
+
         with open(self.error_template_path, 'r') as file_:
             self.error_form = file_.read()
 
@@ -84,6 +88,10 @@ class SlurmFormSpawner(SlurmSpawner):
         options['runtime'] = int(options['runtime'] * 60)
         ui = self.form.data.get('ui')
         options['modules'] = self.ui_args[ui].get('modules', [])
+        if options['netns'] and self.batchspawner_portwrap_path is not None:
+            self.cmd = [self.batchspawner_portwrap_path] + self.spawner_cmd
+        else:
+            self.cmd = self.spawner_cmd
         return options
 
     @user_options.setter

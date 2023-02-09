@@ -63,7 +63,12 @@ class SbatchForm(Configurable):
 
     oversubscribe = Dict({'def' : False, 'lock' : True}).tag(config=True)
 
-    netns = Dict({'def' : True, 'lock' : False}).tag(config=True)
+    netns = Dict(
+        {
+            'def' : True,
+            'lock' : False
+        }
+    ).tag(config=True)
 
     gpus = SelectWidget(
         {
