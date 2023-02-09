@@ -82,16 +82,25 @@ class SlurmFormSpawner(SlurmSpawner):
         with open(self.submit_template_path, 'r') as script_template:
             self.batch_script = script_template.read()
 
+    def cmd_formatted_for_batch(self):
+        if self.form.data['netns'] and self.batchspawner_portwrap_path is not None:
+            return " ".join(
+                [
+                    self.batchspawner_singleuser_cmd,
+                    self.batchspawner_portwrap_path
+                ] +
+                self.cmd +
+                self.get_args()
+            )
+        else:
+            return super().cmd_formatted_for_batch()
+
     @property
     def user_options(self):
         options = self.form.data.copy()
         options['runtime'] = int(options['runtime'] * 60)
         ui = self.form.data.get('ui')
         options['modules'] = self.ui_args[ui].get('modules', [])
-        if options['netns'] and self.batchspawner_portwrap_path is not None:
-            self.cmd = [self.batchspawner_portwrap_path] + self.spawner_cmd
-        else:
-            self.cmd = self.spawner_cmd
         return options
 
     @user_options.setter
