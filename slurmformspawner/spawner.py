@@ -37,6 +37,7 @@ class SlurmFormSpawner(SlurmSpawner):
     ).tag(config=True)
 
     batchspawner_portwrap_path = Unicode().tag(config=True)
+    portwrap_path = Unicode().tag(config=True)
 
     submit_template_path = Unicode(
         os.path.join(sys.prefix, 'share', 'slurmformspawner', 'templates', 'submit.sh'),
@@ -87,7 +88,9 @@ class SlurmFormSpawner(SlurmSpawner):
             return " ".join(
                 [
                     self.batchspawner_singleuser_cmd,
-                    self.batchspawner_portwrap_path
+                    self.batchspawner_portwrap_path,
+                    "--portwrap-path",
+                    self.portwrap_path,
                 ] +
                 self.cmd +
                 self.get_args()
