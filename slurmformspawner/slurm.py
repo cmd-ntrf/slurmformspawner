@@ -3,7 +3,6 @@ from traitlets.config import SingletonConfigurable
 from traitlets import Integer
 
 from datetime import datetime
-from json import loads
 from subprocess import check_output, CalledProcessError
 
 from cachetools import TTLCache, cachedmethod

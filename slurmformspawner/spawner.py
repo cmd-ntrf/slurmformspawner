@@ -1,10 +1,9 @@
 import os
 import sys
 
-from collections import defaultdict
 
 from batchspawner import SlurmSpawner
-from traitlets import Integer, CBool, Unicode, Float, Set, Dict
+from traitlets import CBool, Unicode, Dict
 
 from . form import SbatchForm
 from . slurm import SlurmAPI

@@ -8,11 +8,9 @@ from datetime import datetime
 from jinja2 import Template
 
 from traitlets.config.configurable import Configurable
-from traitlets import Integer, CBool, Unicode, Float, Set, Dict, Unicode
+from traitlets import Unicode, Dict, Unicode
 
-from jupyterhub.traitlets import Callable
-
-from wtforms import BooleanField, DecimalField, SelectField, StringField, Form, RadioField
+from wtforms import BooleanField, DecimalField, SelectField
 from wtforms.form import BaseForm
 from wtforms.validators import InputRequired, NumberRange, AnyOf
 from wtforms.fields.html5 import IntegerField
