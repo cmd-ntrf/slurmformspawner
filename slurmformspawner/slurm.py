@@ -91,7 +91,6 @@ class SlurmAPI(SingletonConfigurable):
             return []
 
         accounts = set(accounts)
-        active_res = []
         now = datetime.now()
         return [
             res for res in reservations
