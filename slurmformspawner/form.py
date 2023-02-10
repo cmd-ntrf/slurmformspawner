@@ -282,20 +282,16 @@ class SbatchForm(Configurable):
     def config_reservations(self):
         choices = self.resolve(self.reservation.get('choices'))
         lock = self.resolve(self.reservation.get('lock'))
-        prev = self.form['reservation'].data
         if choices is None:
             choices = []
 
         now = datetime.now()
-        prev_is_valid = False
         self.form['reservation'].choices = [("", "None")]
         for rsv in choices:
             name = rsv['ReservationName']
             duration = rsv['EndTime'] - now
             string = '{} - time left: {}'.format(name, duration)
             self.form['reservation'].choices.append((name, string))
-            if prev == name:
-                prev_is_valid = True
         if lock:
             self.form['reservation'].render_kw = {'disabled': 'disabled'}
         self.form['reservation'].validators[-1].values = [key for key, value in self.form['reservation'].choices]
