@@ -12,12 +12,14 @@ class SlurmAPI(SingletonConfigurable):
     acct_cache_ttl = Integer(300).tag(config=True)
     acct_cache_size = Integer(100).tag(config=True)
     res_cache_ttl = Integer(300).tag(config=True)
+    part_cache_ttl = Integer(300).tag(config=True)
 
     def __init__(self, config=None):
         super().__init__(config=config)
         self.info_cache = TTLCache(maxsize=1, ttl=self.info_cache_ttl)
         self.acct_cache = TTLCache(maxsize=self.acct_cache_size, ttl=self.acct_cache_ttl)
         self.res_cache = TTLCache(maxsize=1, ttl=self.res_cache_ttl)
+        self.part_cache = TTLCache(maxsize=1, ttl=self.part_cache_ttl)
 
     @cachedmethod(attrgetter('info_cache'))
     def get_node_info(self):
@@ -101,4 +103,37 @@ class SlurmAPI(SingletonConfigurable):
                     bool(accounts.intersection(res['Accounts']))
                 )
             )
+        ]
+
+    @cachedmethod(attrgetter('part_cache'))
+    def get_partitions(self):
+        try:
+            partitions = check_output(['scontrol', 'show', 'part', '-o', '--quiet'], encoding='utf-8')
+        except CalledProcessError:
+            partitions = []
+        else:
+            if partitions:
+                partitions = partitions.strip().split('\n')
+            else:
+                partitions = []
+
+        partitions = [dict([item.split('=', maxsplit=1) for item in part.split()]) for part in partitions if part]
+        for part in partitions:
+            part['AllowAccounts'] = set(part.get('AllowAccounts', '').split(','))
+            part['AllowGroups'] = set(part.get('AllowGroups', '').split(','))
+            part['DenyAccounts'] = set(part.get('DenyAccounts', '').split(','))
+
+    def get_allow_partitions(self, groups,accounts):
+        partitions = self.get_partitions()
+        if not partitions:
+            return []
+
+        accounts = set(accounts + ['ALL'])
+        groups = set(groups + ['ALL'])
+        return [
+            part for part in partitions
+            if (
+                bool(accounts.intersection(part['AllowAccounts'])) or
+                bool(groups.intersection(part['AllowGroups']))
+            ) and not bool(accounts.intersection(part['DenyAccounts']))
         ]
