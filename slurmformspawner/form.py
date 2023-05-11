@@ -98,6 +98,15 @@ class SbatchForm(Configurable):
         help="Define the list of available user interface."
     ).tag(config=True)
 
+    partition = SelectWidget(
+        {
+            'lock' : False,
+            'def' : '',
+            'choices' : lambda api, user: api.get_partitions()
+        },
+        help="Define the list of available slurm partitions."
+    ).tag(config=True)
+
     form_template_path = Unicode(
         os.path.join(sys.prefix, 'share', 'slurmformspawner', 'templates', 'form.html'),
         help="Path to the Jinja2 template of the form"
@@ -113,7 +122,8 @@ class SbatchForm(Configurable):
             'memory'  : IntegerField('Memory (MB)',  validators=[InputRequired(), NumberRange()], widget=NumberInput()),
             'gpus'    : SelectField('GPU configuration', validators=[AnyOf([])]),
             'oversubscribe' : BooleanField('Enable core oversubscription?'),
-            'reservation' : SelectField("Reservation", validators=[AnyOf([])])
+            'reservation' : SelectField("Reservation", validators=[AnyOf([])]),
+            'partition' : SelectField("Partition", validators=[AnyOf([])])
         }
         self.form = BaseForm(fields)
         self.form['runtime'].filters = [float]
@@ -165,6 +175,7 @@ class SbatchForm(Configurable):
         self.config_gpus()
         self.config_reservations()
         self.config_account()
+        self.config_partition()
         return Template(self.template).render(form=self.form)
 
     def config_runtime(self):
@@ -278,6 +289,24 @@ class SbatchForm(Configurable):
 
         if lock:
             self.form['ui'].render_kw = {'disabled': 'disabled'}
+
+    def config_partition(self):
+        choices = self.resolve(self.partition.get('choices'))
+        lock = self.resolve(self.partition.get('lock'))
+
+        partition_choice_map = {}
+        for partition in choices:
+            if partition != '':
+                partition_choice_map[partition] = partition
+                    
+        if len(partition_choice_map) == 0:
+            partition_choice_map = {'' : 'None'}
+
+        self.form['partition'].choices = list(partition_choice_map.items())
+        self.form['partition'].validators[-1].values = [key for key, value in self.form['partition'].choices]
+
+        if lock:
+            self.form['partition'].render_kw = {'disabled': 'disabled'}
 
     def config_reservations(self):
         choices = self.resolve(self.reservation.get('choices'))
