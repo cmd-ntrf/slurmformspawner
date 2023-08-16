@@ -37,7 +37,7 @@ class SlurmAPI(SingletonConfigurable):
                 output['cpu'].append(int(node['CPUTot']))
                 output['mem'].append(int(node['RealMemory']) - int(node.get('MemSpecLimit', '0')))
                 output['gres'].append(node['Gres'])
-                output['partitions'].append(node['Partitions'].split(","))
+                output['partitions'].extend(node['Partitions'].split(","))
         return output
 
     def is_online(self):
