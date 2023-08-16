@@ -21,7 +21,7 @@ class SlurmAPI(SingletonConfigurable):
 
     @cachedmethod(attrgetter('info_cache'))
     def get_node_info(self):
-        output = {'cpu': [], 'mem': [], 'gres': []}
+        output = {'cpu': [], 'mem': [], 'gres': [], 'partitions': []}
         try:
             controls = check_output(['scontrol', '-o', 'show', 'node'], encoding='utf-8')
         except CalledProcessError:
@@ -37,7 +37,7 @@ class SlurmAPI(SingletonConfigurable):
                 output['cpu'].append(int(node['CPUTot']))
                 output['mem'].append(int(node['RealMemory']) - int(node.get('MemSpecLimit', '0')))
                 output['gres'].append(node['Gres'])
-                output['partitions'] = node['Partitions'].split(",")
+                output['partitions'].append(node['Partitions'].split(","))
         return output
 
     def is_online(self):
