@@ -3,11 +3,18 @@
 
 from setuptools import setup
 
+# read the contents of your README file
+from pathlib import Path
+this_directory = Path(__file__).parent
+long_description = (this_directory / "README.md").read_text()
+
 setup_args = dict(
     name                = 'slurmformspawner',
     packages            = ['slurmformspawner'],
     version             = "2.3.0",
     description         = "slurmformspawner: JupyterHub SlurmSpawner with a dynamic spawn form",
+    long_description    = long_description,
+    long_description_content_type = 'text/markdown',
     author              = "Félix-Antoine Fortin",
     author_email        = "felix-antoine.fortin@calculquebec.ca",
     url                 = "https://github.com/cmd-ntrf/slurmformspawner",
