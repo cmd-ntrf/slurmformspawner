@@ -100,7 +100,7 @@ class SbatchForm(Configurable):
 
     partition = SelectWidget(
         {
-            'lock' : False,
+            'lock' : True,
             'def' : '',
             'choices' : lambda api, user: api.get_partitions()
         },
