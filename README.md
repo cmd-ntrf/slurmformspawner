@@ -17,6 +17,7 @@ JupyterHub SlurmSpawner with a dynamic spawn form
 | --------------------------------- | :------ | :---------------------------------------------- | ------- |
 | `c.SlurmFormSpawner.disable_form`    | `CBool` | Disable the spawner input form, use only default values instead | `False` |
 | `c.SlurmFormSpawner.error_template_path` | `Unicode` | Path to the Jinja2 template of the error page | `os.path.join(sys.prefix, 'share',  'slurmformspawner', 'templates', 'error.html')` |
+| `c.SlurmFormSpawner.exec_prefix` | `Unicode` | Standard execution prefix for slurm commands | `sudo --preserve-env={keepvars} -u {username}` |
 | `c.SlurmFormSpawner.submit_template_path` | `Unicode` | Path to the Jinja2 template of the submit file | `os.path.join(sys.prefix, 'share', 'slurmformspawner', 'templates', 'submit.sh')` |
 | `c.SlurmFormSpawner.ui_args` | `Dict` | Dictionary of dictionaries describing the UI options | refer to `ui_args` section |
 
