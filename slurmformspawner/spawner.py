@@ -46,10 +46,14 @@ class SlurmFormSpawner(SlurmSpawner):
         help="Path to the Jinja2 template of the form when there is a problem with Slurm"
     ).tag(config=True)
 
-    exec_prefix = ""
+    exec_prefix = Unicode(
+        "sudo --preserve-env={keepvars} -u {username}",
+        help="Standard execution prefix (e.g. sudo --preserve-env={keepvars} -u {username})"
+    ).tag(config=True)
+
     env_keep = []
-    batch_submit_cmd = "sudo --preserve-env={keepvars} -u {username} {slurm_bin_path}/sbatch --parsable"
-    batch_cancel_cmd = "sudo -u {username} {slurm_bin_path}/scancel {job_id}"
+    batch_submit_cmd = "{slurm_bin_path}/sbatch --parsable"
+    batch_cancel_cmd = "{slurm_bin_path}/scancel {job_id}"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
