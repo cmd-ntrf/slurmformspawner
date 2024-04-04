@@ -18,14 +18,14 @@ class SlurmFormSpawner(SlurmSpawner):
         {
             'notebook' : {
                 'name' : 'Jupyter Notebook',
+                'url' : '/tree',
             },
             'lab' : {
                 'name' : 'JupyterLab',
-                'args' : ['--SingleUserNotebookApp.default_url=/lab']
             },
             'terminal' : {
                 'name' : 'Terminal',
-                'args' : ['--SingleUserNotebookApp.default_url=/terminals/1']
+                'url' : '/terminals/1',
             },
         },
         help="Dictionary of dictionaries describing the names and args of UI options"
@@ -94,6 +94,14 @@ class SlurmFormSpawner(SlurmSpawner):
         args = super().get_args()
         ui = self.form.data.get('ui')
         return args + self.ui_args[ui].get('args', [])
+
+    def get_env(self):
+        env = super().get_env()
+        ui = self.form.data.get('ui')
+        url = self.ui_args[ui].get('url', None)
+        if url:
+            env["JUPYTERHUB_DEFAULT_URL"] = url
+        return env
 
     @property
     def options_form(self):
