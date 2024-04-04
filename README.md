@@ -3,9 +3,9 @@ JupyterHub SlurmSpawner with a dynamic spawn form
 
 ## Requirements
 
-- Python >= 3.6
-- JupyterHub >= 1.0
-- batchspawner>=0.9.0.dev0
+- Python >= 3.7
+- JupyterHub >= 4.0.0
+- batchspawner>= 1.3.0
 - cachetools
 - traitlets
 

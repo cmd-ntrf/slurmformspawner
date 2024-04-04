@@ -30,7 +30,7 @@ setup_args = dict(
         'Programming Language :: Python :: 3',
     ],
     install_requires   = [
-      'batchspawner>=0.9.0.dev0',
+      'batchspawner>=1.3.0',
       'WTForms==2.3.1',
       'jinja2>=2.10.1',
       'cachetools'
