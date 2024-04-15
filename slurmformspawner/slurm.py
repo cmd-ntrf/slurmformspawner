@@ -36,7 +36,7 @@ class SlurmAPI(SingletonConfigurable):
             for node in nodes:
                 output['cpu'].append(int(node['CPUTot']))
                 output['mem'].append(int(node['RealMemory']) - int(node.get('MemSpecLimit', '0')))
-                output['gres'].append(node['Gres'])
+                output['gres'].extend(node['Gres'].split(","))
                 output['partitions'].extend(node['Partitions'].split(","))
         return output
 

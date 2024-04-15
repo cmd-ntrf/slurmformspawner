@@ -3,9 +3,9 @@ JupyterHub SlurmSpawner with a dynamic spawn form
 
 ## Requirements
 
-- Python >= 3.6
-- JupyterHub >= 1.0
-- batchspawner>=0.9.0.dev0
+- Python >= 3.7
+- JupyterHub >= 4.0.0
+- batchspawner>= 1.3.0
 - cachetools
 - traitlets
 
@@ -26,6 +26,7 @@ JupyterHub SlurmSpawner with a dynamic spawn form
 `ui_args` is a dictionary where the keys are labels that will be re-used in `SbatchForm.ui` and the values are dictionnaries describing how to launch the user interface.
 Each option dictionary can have the following keys:
 - `name` (required): string that will appear in the Spawner form
+- `url`  (optional): url user is being redirected to after spawning the single-user server (refer to `JUPYTERHUB_DEFAULT_URL` documentation)
 - `args` (optional): list of flags and options that will be appended to jupyter single-user command that should redirect to the UI.
 - `modules` (optional): list of module names that needs to be loaded to make the user interface work
 
@@ -37,11 +38,11 @@ c.SlurmFormSpawner.ui_args = {
     },
     'terminal' : {
         'name': 'Terminal',
-        'args': ['--SingleUserNotebookApp.default_url=/terminal/1']
+        'url': '/terminal/1'
     },
     'rstudio' : {
         'name': 'RStudio',
-        'args': ['--SingleUserNotebookApp.default_url=/rstudio'],
+        'url': '/rstudio',
         'modules': ['rstudio-server']
     }
 }

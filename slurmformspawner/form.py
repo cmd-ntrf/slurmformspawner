@@ -266,7 +266,7 @@ class SbatchForm(Configurable):
             if gres == 'gpu:0':
                 gpu_choice_map['gpu:0'] = 'None'
                 continue
-            match = re.match(r"(gpu:[\w:]+)", gres)
+            match = re.match(r"(gpu:[\w:.]+)", gres)
             if match:
                 gres = match.group(1).split(':')
                 number = int(gres[-1])

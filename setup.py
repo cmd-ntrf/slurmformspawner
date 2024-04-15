@@ -11,7 +11,7 @@ long_description = (this_directory / "README.md").read_text()
 setup_args = dict(
     name                = 'slurmformspawner',
     packages            = ['slurmformspawner'],
-    version             = "2.5.0",
+    version             = "2.6.0",
     description         = "slurmformspawner: JupyterHub SlurmSpawner with a dynamic spawn form",
     long_description    = long_description,
     long_description_content_type = 'text/markdown',
@@ -30,7 +30,7 @@ setup_args = dict(
         'Programming Language :: Python :: 3',
     ],
     install_requires   = [
-      'batchspawner>=0.9.0.dev0',
+      'batchspawner>=1.3.0',
       'WTForms==2.3.1',
       'jinja2>=2.10.1',
       'cachetools'
