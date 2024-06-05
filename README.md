@@ -8,6 +8,7 @@ JupyterHub SlurmSpawner with a dynamic spawn form
 - batchspawner>= 1.3.0
 - cachetools
 - traitlets
+- Slurm >= 21.08 (need `--json` flag)
 
 ## Configuration
 
