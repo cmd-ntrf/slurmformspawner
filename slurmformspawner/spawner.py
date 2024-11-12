@@ -1,7 +1,7 @@
 import os
 import sys
 
-
+from jupyterhub import __version__ as hub_version
 from batchspawner import SlurmSpawner
 from traitlets import CBool, Unicode, Dict
 
@@ -59,7 +59,8 @@ class SlurmFormSpawner(SlurmSpawner):
                                slurm_api=self.slurm_api,
                                ui_args=self.ui_args,
                                user_options=self.orm_spawner.user_options or {},
-                               config=self.config)
+                               config=self.config,
+                               hub_version=hub_version)
 
         self.batch_submit_cmd = self.batch_submit_cmd.format(
             username='{username}',
