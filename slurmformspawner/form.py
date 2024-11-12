@@ -5,6 +5,7 @@ import sys
 from functools import partial
 from datetime import datetime
 
+from packaging.version import parse as parse_version
 from jinja2 import Template
 
 from traitlets.config.configurable import Configurable
@@ -112,7 +113,7 @@ class SbatchForm(Configurable):
         help="Path to the Jinja2 template of the form"
     ).tag(config=True)
 
-    def __init__(self, username, slurm_api, ui_args, user_options = {}, config=None):
+    def __init__(self, username, slurm_api, ui_args, hub_version, user_options = {}, config=None):
         super().__init__(config=config)
         fields = {
             'account' : SelectField("Account", validators=[AnyOf([])]),
@@ -129,6 +130,10 @@ class SbatchForm(Configurable):
         self.form['runtime'].filters = [float]
         self.resolve = partial(resolve, api=slurm_api, user=username)
         self.ui_args = ui_args
+        if parse_version(hub_version) >= parse_version('5.0.0'):
+            self.bootstrap_version = 5
+        else:
+            self.bootstrap_version = 3
 
         with open(self.form_template_path, 'r') as template_file:
             self.template = template_file.read()
@@ -176,7 +181,7 @@ class SbatchForm(Configurable):
         self.config_reservations()
         self.config_account()
         self.config_partition()
-        return Template(self.template).render(form=self.form)
+        return Template(self.template).render(form=self.form, bootstrap_version=self.bootstrap_version)
 
     def config_runtime(self):
         lock = self.resolve(self.runtime.get('lock'))

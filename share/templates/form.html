@@ -1,12 +1,17 @@
+{% if bootstrap_version >= 5 -%}
+    {% set field_cls = "col-md-auto" -%}
+{% else -%}
+    {% set field_cls = "col-md-6" -%}
+{% endif -%}
 <div class="row">
     <div class="col">
-        <div class="form-group col-md-6">
+        <div class="form-group {{field_cls}}">
             {{ form.reservation.label }}
             {{ form.reservation(class_="form-control") }}
         </div>
     </div>
     <div class="col">
-        <div class="form-group col-md-6">
+        <div class="form-group {{field_cls}}">
             {{ form.partition.label }}
             {{ form.partition(class_="form-control") }}
         </div>
@@ -14,13 +19,13 @@
 </div>
 <div class="row">
     <div class="col">
-        <div class="form-group col-md-6">
+        <div class="form-group {{field_cls}}">
             {{ form.account.label }}
             {{ form.account(class_="form-control") }}
         </div>
     </div>
     <div class="col">
-        <div class="form-group col-md-6">
+        <div class="form-group {{field_cls}}">
             {{ form.runtime.label }}
             {{ form.runtime(class_="form-control") }}
         </div>
@@ -28,13 +33,13 @@
 </div>
 <div class="row">
     <div class="col">
-        <div class="form-group col-md-6">
+        <div class="form-group {{field_cls}}">
             {{ form.nprocs.label }}
             {{ form.nprocs(class_="form-control") }}
         </div>
     </div>
     <div class="col">
-        <div class="form-group col-md-6">
+        <div class="form-group {{field_cls}}">
             {{ form.memory.label }}
             {{ form.memory(class_="form-control") }}
         </div>
