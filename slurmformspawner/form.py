@@ -267,20 +267,47 @@ class SbatchForm(Configurable):
         lock = self.resolve(self.gpus.get('lock'))
 
         gpu_choice_map = {}
-        for gres in choices:
-            if gres == 'gpu:0':
+        for choice in choices:
+            if choice == 'gpu:0':
                 gpu_choice_map['gpu:0'] = 'None'
                 continue
-            match = re.match(r"(gpu:[\w:.]+)", gres)
-            if match:
-                gres = match.group(1).split(':')
-                number = int(gres[-1])
-                if len(gres) == 2:
-                    strings = ('gpu:{}', '{} x GPU')
-                elif len(gres) > 2:
-                    strings = ('gpu:{}:{{}}'.format(gres[1]), '{{}} x {}'.format(gres[1].upper()))
-                for i in range(1, number + 1):
+
+            # we now have one choice per type of gres configuration to support
+            # heterogenous cluster configuration, each node could have multiple types of gres
+            gres_list = choice.split(',')
+
+            # if the node has shards, we need the number of gpus and number of shards
+            max_shard_per_gpu = 0
+            if any(gres.startswith('shard') for gres in gres_list):
+                # get total number of gpus and shard
+                num_gpu = 0
+                for gres_def in gres_list:
+                    match = re.match(r"(gpu:[\w:.]+)", gres_def)
+                    if match:
+                        gres = match.group(1).split(':')
+                        num_gpu += int(gres[-1])
+                    match = re.match(r"(shard:[\w:.]+)", gres_def)
+                    if match:
+                        gres = match.group(1).split(':')
+                        num_shard = int(gres[-1])
+                max_shard_per_gpu = max(max_shard_per_gpu, int(num_shard / num_gpu))
+            if max_shard_per_gpu > 0:
+                strings = ('shard:{}', '{} x shard')
+                for i in range(1, max_shard_per_gpu + 1):
                     gpu_choice_map[strings[0].format(i)] = strings[1].format(i)
+
+            for gres_def in gres_list:
+                match = re.match(r"(gpu:[\w:.]+)", gres_def)
+                if match:
+                    gres = match.group(1).split(':')
+                    number = int(gres[-1])
+                    if len(gres) == 2:
+                        strings = ('gpu:{}', '{} x GPU')
+                    elif len(gres) > 2:
+                        strings = ('gpu:{}:{{}}'.format(gres[1]), '{{}} x {}'.format(gres[1].upper()))
+                    for i in range(1, number + 1):
+                        gpu_choice_map[strings[0].format(i)] = strings[1].format(i)
+
         self.form['gpus'].choices = list(gpu_choice_map.items())
         if lock:
             self.form['gpus'].render_kw = {'disabled': 'disabled'}
