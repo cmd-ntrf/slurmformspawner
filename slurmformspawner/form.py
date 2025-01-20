@@ -281,6 +281,7 @@ class SbatchForm(Configurable):
 
             total_gpu = 0
             num_shard = 0
+            gpu_type = ''
             for gres_def in gres_list:
                 match = re.match(r"(gpu:[\w:.]+)", gres_def)
                 if match:
@@ -289,10 +290,10 @@ class SbatchForm(Configurable):
                     total_gpu += number
                     if len(gres) == 2:
                         strings = ('gpu:{}', '{} x GPU')
-                        gpu_types += ['GPU']
+                        gpu_type = 'GPU'
                     elif len(gres) > 2:
                         strings = ('gpu:{}:{{}}'.format(gres[1]), '{{}} x {}'.format(gres[1].upper()))
-                        gpu_types += [gres[1].upper()]
+                        gpu_type = gres[1].upper()
                     for i in range(1, number + 1):
                         gpu_choice_map[strings[0].format(i)] = strings[1].format(i)
                 else:
@@ -300,6 +301,8 @@ class SbatchForm(Configurable):
                     if match:
                         gres = match.group(1).split(':')
                         num_shard = int(gres[-1])
+            if num_shard > 0:
+                gpu_types += [gpu_type]
             max_shard_per_gpu = max(max_shard_per_gpu, int(num_shard / total_gpu))
         gpu_types = set(gpu_types)
 
