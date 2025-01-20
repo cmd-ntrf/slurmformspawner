@@ -269,7 +269,7 @@ class SbatchForm(Configurable):
         gpu_choice_map = {}
         # if the node has shards, we need the number of gpus and number of shards
         max_shard_per_gpu = 0
-        gpu_types = []
+        gpu_types = set()
         for choice in choices:
             if choice == 'gpu:0':
                 gpu_choice_map['gpu:0'] = 'None'
@@ -302,9 +302,8 @@ class SbatchForm(Configurable):
                         gres = match.group(1).split(':')
                         num_shard = int(gres[-1])
             if num_shard > 0:
-                gpu_types += [gpu_type]
+                gpu_types.add(gpu_type)
             max_shard_per_gpu = max(max_shard_per_gpu, int(num_shard / total_gpu))
-        gpu_types = set(gpu_types)
 
         if max_shard_per_gpu > 0:
             strings = ('shard:{}', '{}/{} x ({})')
