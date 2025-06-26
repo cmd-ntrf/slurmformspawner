@@ -1,8 +1,34 @@
+<script type="text/javascript">
+profile_map = {{ profile_params | tojson }};
+function onChange() {
+  profile = document.getElementById("profiles").value;
+  set_profile_params('default')
+  set_profile_params(profile)
+}
+function set_profile_params(profile) {
+  for (const [key, value] of Object.entries(profile_map[profile]['params'])) {
+    if (value !== null) {
+      if (typeof value == "boolean") {
+        document.getElementById(key).checked = value;
+      }
+      else {
+        document.getElementById(key).value = value;
+      }
+    }
+  }
+}
+document.addEventListener("DOMContentLoaded", function() {onChange();});
+</script>
+
 {% if bootstrap_version >= 5 -%}
     {% set field_cls = "col-md-auto" -%}
 {% else -%}
     {% set field_cls = "col-md-6" -%}
 {% endif -%}
+<div class="form-group">
+    {{ form.profiles.label }}
+    {{ form.profiles(class_="form-control", onChange="onChange();") }}
+</div>
 <div class="row">
     <div class="col">
         <div class="form-group {{field_cls}}">
