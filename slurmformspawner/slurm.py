@@ -68,7 +68,7 @@ class SlurmAPI(SingletonConfigurable):
                                     'format=account', '-P', '--noheader'], encoding='utf-8')
         except CalledProcessError:
             return []
-        return string.split()
+        return string.splitlines()
 
     @cachedmethod(attrgetter('res_cache'))
     def get_reservations(self):
