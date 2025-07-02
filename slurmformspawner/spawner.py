@@ -31,7 +31,7 @@ class SlurmFormSpawner(SlurmSpawner):
         help="Dictionary of dictionaries describing the names and args of UI options"
     ).tag(config=True)
 
-    profiles_args = Dict({},
+    profile_args = Dict({},
             help="Dictionary of dictionaries describing profiles"
             ).tag(config=True)
 
@@ -61,7 +61,7 @@ class SlurmFormSpawner(SlurmSpawner):
         self.form = SbatchForm(username=self.user.name,
                                slurm_api=self.slurm_api,
                                ui_args=self.ui_args,
-                               profiles_args=self.profiles_args,
+                               profile_args=self.profile_args,
                                user_options=self.orm_spawner.user_options or {},
                                config=self.config,
                                hub_version=hub_version)
@@ -88,7 +88,6 @@ class SlurmFormSpawner(SlurmSpawner):
         options = self.form.data.copy()
         options['runtime'] = int(options['runtime'] * 60)
         ui = self.form.data.get('ui')
-        profile = self.form.data.get('profiles')
         options['modules'] = self.ui_args[ui].get('modules', [])
         return options
 

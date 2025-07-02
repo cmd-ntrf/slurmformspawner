@@ -1,7 +1,14 @@
+{% if bootstrap_version >= 5 -%}
+    {% set field_cls = "col-md-auto" -%}
+{% else -%}
+    {% set field_cls = "col-md-6" -%}
+{% endif -%}
+
+{% if profile_params|length  > 1 -%}
 <script type="text/javascript">
 profile_map = {{ profile_params | tojson }};
 function onChange() {
-  profile = document.getElementById("profiles").value;
+  profile = document.getElementById("profile").value;
   set_profile_params('default')
   set_profile_params(profile)
 }
@@ -20,15 +27,11 @@ function set_profile_params(profile) {
 document.addEventListener("DOMContentLoaded", function() {onChange();});
 </script>
 
-{% if bootstrap_version >= 5 -%}
-    {% set field_cls = "col-md-auto" -%}
-{% else -%}
-    {% set field_cls = "col-md-6" -%}
-{% endif -%}
 <div class="form-group">
-    {{ form.profiles.label }}
-    {{ form.profiles(class_="form-control", onChange="onChange();") }}
+    {{ form.profile.label }}
+    {{ form.profile(class_="form-control", onChange="onChange();") }}
 </div>
+{% endif -%}
 <div class="row">
     <div class="col">
         <div class="form-group {{field_cls}}">
