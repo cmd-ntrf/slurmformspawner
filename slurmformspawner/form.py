@@ -73,6 +73,13 @@ class SbatchForm(Configurable):
         help="Define the list of available gpu configurations."
     ).tag(config=True)
 
+    profiles = SelectWidget(
+        {
+            'lock' : False
+        },
+        help="Define available profiles."
+    ).tag(config=True)
+
     account = SelectWidget(
         {
             'choices' : lambda api, user: api.get_accounts(user),
@@ -113,7 +120,7 @@ class SbatchForm(Configurable):
         help="Path to the Jinja2 template of the form"
     ).tag(config=True)
 
-    def __init__(self, username, slurm_api, ui_args, hub_version, user_options = {}, config=None):
+    def __init__(self, username, slurm_api, ui_args, profiles_args, hub_version, user_options = {}, config=None):
         super().__init__(config=config)
         fields = {
             'account' : SelectField("Account", validators=[AnyOf([])]),
@@ -122,6 +129,7 @@ class SbatchForm(Configurable):
             'nprocs'  : IntegerField('Number of cores', validators=[InputRequired(), NumberRange()], widget=NumberInput()),
             'memory'  : IntegerField('Memory (MB)',  validators=[InputRequired(), NumberRange()], widget=NumberInput()),
             'gpus'    : SelectField('GPU configuration', validators=[AnyOf([])]),
+            'profiles'    : SelectField('Job profile', validators=[AnyOf([])]),
             'oversubscribe' : BooleanField('Enable core oversubscription?'),
             'reservation' : SelectField("Reservation", validators=[AnyOf([])]),
             'partition' : SelectField("Partition", validators=[AnyOf([])])
@@ -130,6 +138,13 @@ class SbatchForm(Configurable):
         self.form['runtime'].filters = [float]
         self.resolve = partial(resolve, api=slurm_api, user=username)
         self.ui_args = ui_args
+        # retrive defaults from config
+        defaults = {}
+        for field in fields:
+            if field == 'profiles': continue
+            defaults[field] = self.resolve(getattr(self, field).get('def'))
+
+        self.profiles_args = {'default': {'name': 'Default', 'params': defaults}} | profiles_args
         if parse_version(hub_version) >= parse_version('5.0.0'):
             self.bootstrap_version = 5
         else:
@@ -157,11 +172,16 @@ class SbatchForm(Configurable):
         return self.form.errors
 
     def process(self, formdata):
+        profile = formdata.get('profiles')[0]
+        profile_params = self.profiles_args[profile]['params']
         for key in self.form._fields.keys():
             lock = self.resolve(getattr(self, key).get('lock'))
             value = formdata.get(key)
+            profile_value = profile_params[key] if key in profile_params.keys() else None
             if not lock and value is not None:
                 self.form[key].process(formdata=FakeMultiDict({key : value}))
+            if lock and profile_value is not None:
+                self.form[key].process(formdata=FakeMultiDict({key : [profile_value]}))
 
     def validate(self):
         valid = True
@@ -178,10 +198,11 @@ class SbatchForm(Configurable):
         self.config_oversubscribe()
         self.config_ui()
         self.config_gpus()
+        self.config_profiles()
         self.config_reservations()
         self.config_account()
         self.config_partition()
-        return Template(self.template).render(form=self.form, bootstrap_version=self.bootstrap_version)
+        return Template(self.template).render(form=self.form, bootstrap_version=self.bootstrap_version, profile_params=self.profiles_args)
 
     def config_runtime(self):
         lock = self.resolve(self.runtime.get('lock'))
@@ -314,6 +335,17 @@ class SbatchForm(Configurable):
         if lock:
             self.form['gpus'].render_kw = {'disabled': 'disabled'}
         self.form['gpus'].validators[-1].values = [key for key, value in self.form['gpus'].choices]
+
+    def config_profiles(self):
+        choices = ['default']
+        choices += self.resolve(self.profiles.get('choices')) or []
+        lock = self.resolve(self.profiles.get('lock'))
+        self.form['profiles'].validators[-1].values = [key for key in choices]
+        self.form['profiles'].choices = [(key, self.profiles_args[key]['name']) for key in choices]
+
+        if lock:
+            self.form['profiles'].render_kw = {'disabled': 'disabled'}
+
 
     def config_ui(self):
         choices = self.resolve(self.ui.get('choices'))

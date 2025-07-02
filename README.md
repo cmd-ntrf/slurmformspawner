@@ -19,6 +19,7 @@ JupyterHub SlurmSpawner with a dynamic spawn form
 | `c.SlurmFormSpawner.error_template_path` | `Unicode` | Path to the Jinja2 template of the error page | `os.path.join(sys.prefix, 'share',  'slurmformspawner', 'templates', 'error.html')` |
 | `c.SlurmFormSpawner.submit_template_path` | `Unicode` | Path to the Jinja2 template of the submit file | `os.path.join(sys.prefix, 'share', 'slurmformspawner', 'templates', 'submit.sh')` |
 | `c.SlurmFormSpawner.ui_args` | `Dict` | Dictionary of dictionaries describing the UI options | refer to `ui_args` section |
+| `c.SlurmFormSpawner.profiles_args` | `Dict` | Dictionary of dictionaries describing profiles | refer to `profiles_args` section |
 
 #### `ui_args`
 
@@ -47,6 +48,36 @@ c.SlurmFormSpawner.ui_args = {
 }
 ```
 
+#### `profiles_args`
+`profiles_args` is a dictionary where the keys are labels that are used in a JavaScript function to set values of the form according values specified in the `params` sub dictionary.
+
+Each dictionary has the following keys:
+- `name` (required): string that will appear in the Spawner form
+- `params` (required): dictionary that can specify the value of each of the parameters in SbatchForm (see SbatchForm section).
+
+Here is an example of how you could define profiles
+```
+c.SlurmFormSpawner.profiles_args = {
+    'shell' : {
+        'name': 'Shell session',
+        'params': {
+            'nprocs': 1,
+            'oversubscribe': True,
+            'ui': 'terminal'
+        }
+    },
+    'parallel_testing' : {
+        'name': 'Parallel Testing',
+        'params': {
+            'nprocs': 8,
+            'oversubscribe': False,
+            'ui': 'lab',
+            'runtime': 1,
+        }
+    }
+}
+```
+
 ### SbatchForm
 
 | Variable                          | Type    | Description                                     | Default |
@@ -57,6 +88,7 @@ c.SlurmFormSpawner.ui_args = {
 | `c.SbatchForm.oversubscribe`  | `Dict({'def', 'lock'})` | Oversubscribe widget parameters | refer to `form.py`  |
 | `c.SbatchForm.gpus`  | `Dict({'def', 'choices', 'lock'})` | GPUs widget parameters | refer to `form.py`  |
 | `c.SbatchForm.ui`  | `Dict({'def', 'choices', 'lock'})` | User interface widget parameters | refer to `form.py`  |
+| `c.SbatchForm.profiles`  | `Dict({'def', 'choices', 'lock'})` | User interface widget parameters | refer to `form.py`  |
 | `c.SbatchForm.reservation`  | `Dict({'def', 'choices', 'lock'})` | Reservation widget parameters | refer to `form.py`  |
 | `c.SbatchForm.account`  | `Dict({'def', 'choices', 'lock'})` | Account widget parameters | refer to `form.py`  |
 | `c.SbatchForm.partition` | `Dict({'def', 'choices', 'lock'})` | Slurm partition parameters | refer to `form.py` |
