@@ -14,13 +14,15 @@ function onChange() {
 }
 function set_profile_params(profile) {
   for (const [key, value] of Object.entries(profile_map[profile]['params'])) {
-    if (value !== null) {
+    const element = document.getElementById(key); // Get the element once
+    if (element) { // Check if the element exists
       if (typeof value == "boolean") {
-        document.getElementById(key).checked = value;
+        element.checked = value;
+      } else {
+        element.value = value;
       }
-      else {
-        document.getElementById(key).value = value;
-      }
+    } else {
+      console.warn(`Element with ID '${key}' not found. Skipping property assignment.`); // Log a warning instead of erroring
     }
   }
 }
