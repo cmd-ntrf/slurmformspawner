@@ -372,7 +372,8 @@ class SbatchForm(Configurable):
         self.form['gpus'].validators[-1].values = [key for key, value in self.form['gpus'].choices]
 
     def config_profile(self):
-        choices = self.resolve(self.profile.get('choices'))
+        # only keep choices that are in the filtered list provided by self.profile_args
+        choices = [key for key in self.resolve(self.profile.get('choices')) if key in self.profile_args.keys()]
         if not choices:
             choices = self.profile_args.keys()
         lock = self.resolve(self.profile.get('lock')) and not self.global_unlock
