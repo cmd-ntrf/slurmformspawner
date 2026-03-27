@@ -2,6 +2,7 @@ import os
 import sys
 
 from jupyterhub import __version__ as hub_version
+from jupyterhub import scopes
 from batchspawner import SlurmSpawner
 from traitlets import CBool, Unicode, Dict
 
@@ -58,10 +59,13 @@ class SlurmFormSpawner(SlurmSpawner):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.slurm_api = SlurmAPI.instance(self.config)
-        self.form = SbatchForm(username=self.user.name,
+        user_scopes = scopes.get_scopes_for(self.user)
+        filtered_profile_args = {k: v for k,v in self.profile_args.items() if 'required_scope' not in v.keys() or v['required_scope'] in user_scopes}
+
+        self.form = SbatchForm(user=self.user,
                                slurm_api=self.slurm_api,
                                ui_args=self.ui_args,
-                               profile_args=self.profile_args,
+                               profile_args=filtered_profile_args,
                                user_options=self.orm_spawner.user_options or {},
                                config=self.config,
                                hub_version=hub_version)
