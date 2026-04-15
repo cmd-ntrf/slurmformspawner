@@ -186,10 +186,10 @@ class SbatchForm(Configurable):
             dict_ = getattr(self, key)
             if dict_.get('lock') is True and dict_.get('def') is None:
                 raise Exception(f'You need to define a default value for {key} because it is locked.')
-            if key in user_options:
-                self.form[key].process(formdata=FakeMultiDict({key : [user_options[key]]}))
-            else:
-                self.form[key].process(formdata=FakeMultiDict({key : [self.resolve(getattr(self, key).get('def'))]}))
+            value = user_options[key] if key in user_options else self.resolve(getattr(self, key).get('def'))
+            if not isinstance(self.form[key], SelectMultipleField):
+                value = [value]
+            self.form[key].process(formdata=FakeMultiDict({key : value }))
 
     @property
     def data(self):
