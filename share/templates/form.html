@@ -14,15 +14,33 @@ function onChange() {
 }
 function set_profile_params(profile) {
   for (const [key, value] of Object.entries(profile_map[profile]['params'])) {
-    const element = document.getElementById(key); // Get the element once
-    if (element) { // Check if the element exists
-      if (typeof value == "boolean") {
-        element.checked = value;
-      } else {
-        element.value = value;
+    if (value.constructor === Array) {
+      for (const elem of value) {
+        // first, set all elements to false
+        const all_elements = document.getElementsByName(key);
+        for (const element of all_elements) {
+          element.checked = false;
+        }
+        // then set only the ones listed to true
+        const element = document.getElementById(key + "-" + elem);
+        if (element) { // Check if the element exists
+          element.checked = true;
+        } else {
+          console.warn(`Element with ID '${key}-${elem}' not found. Skipping property assignment.`); // Log a warning instead of erroring
+        }
       }
-    } else {
-      console.warn(`Element with ID '${key}' not found. Skipping property assignment.`); // Log a warning instead of erroring
+    }
+    else {
+      const element = document.getElementById(key); // Get the element once
+      if (element) { // Check if the element exists
+        if (typeof value == "boolean") {
+          element.checked = value;
+        } else {
+          element.value = value;
+        }
+      } else {
+        console.warn(`Element with ID '${key}' not found. Skipping property assignment.`); // Log a warning instead of erroring
+      }
     }
   }
 }
