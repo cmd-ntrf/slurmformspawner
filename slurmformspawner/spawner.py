@@ -2,6 +2,7 @@ import os
 import sys
 
 from jupyterhub import __version__ as hub_version
+from jupyterhub import roles
 from batchspawner import SlurmSpawner
 from traitlets import CBool, Unicode, Dict
 
@@ -58,10 +59,17 @@ class SlurmFormSpawner(SlurmSpawner):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.slurm_api = SlurmAPI.instance(self.config)
+        user_is_admin = 'admin:services' in roles.roles_to_scopes(roles.get_roles_for(self.user.orm_user))
+        if user_is_admin:
+            filtered_profile_args = self.profile_args
+        else:
+            filtered_profile_args = {k: v for k,v in self.profile_args.items() if not 'admin_only' in v.keys() or not v['admin_only']}
+
         self.form = SbatchForm(username=self.user.name,
+                               user_is_admin=user_is_admin,
                                slurm_api=self.slurm_api,
                                ui_args=self.ui_args,
-                               profile_args=self.profile_args,
+                               profile_args=filtered_profile_args,
                                user_options=self.orm_spawner.user_options or {},
                                config=self.config,
                                hub_version=hub_version)
