@@ -5,6 +5,7 @@ import sys
 from functools import partial
 from datetime import datetime
 
+from jupyterhub import scopes
 from packaging.version import parse as parse_version
 from jinja2 import Template
 
@@ -146,7 +147,12 @@ class SbatchForm(Configurable):
         help="Path to the Jinja2 template of the form"
     ).tag(config=True)
 
-    def __init__(self, username, slurm_api, ui_args, profile_args, hub_version, user_options = {}, config=None):
+    unlocked_for_scope = Unicode(
+        "",
+        help="Unlock form to users who have this scope"
+    ).tag(config=True)
+
+    def __init__(self, user, slurm_api, ui_args, profile_args, hub_version, user_options = {}, config=None):
         super().__init__(config=config)
         fields = {
             'account' : SelectField("Account", validators=[AnyOf([])]),
@@ -164,8 +170,9 @@ class SbatchForm(Configurable):
         self.form = BaseForm(fields)
         self.form['runtime'].filters = [float]
         self.slurm_api = slurm_api
-        self.resolve = partial(resolve, api=self.slurm_api, user=username)
+        self.resolve = partial(resolve, api=self.slurm_api, user=user.name)
         self.ui_args = ui_args
+        self.global_unlock = self.unlocked_for_scope in scopes.get_scopes_for(user)
 
         # retrieve defaults from config
         defaults = dict.fromkeys(fields.keys() - ['profile'])
@@ -203,7 +210,7 @@ class SbatchForm(Configurable):
         profile = formdata.get('profile', ('default',))[0]
         profile_params = self.profile_args[profile]['params']
         for key in self.form._fields.keys():
-            lock = self.resolve(getattr(self, key).get('lock'))
+            lock = self.resolve(getattr(self, key).get('lock')) and not self.global_unlock
             value = formdata.get(key)
             profile_value = profile_params[key] if key in profile_params.keys() else None
             if not lock and value is not None:
@@ -214,7 +221,7 @@ class SbatchForm(Configurable):
     def validate(self):
         valid = True
         for key in self.form._fields.keys():
-            lock = self.resolve(getattr(self, key).get('lock'))
+            lock = self.resolve(getattr(self, key).get('lock')) and not self.global_unlock
             if not lock:
                 valid = self.form[key].validate(self.form) and valid
         return valid
@@ -234,7 +241,7 @@ class SbatchForm(Configurable):
         return Template(self.template).render(form=self.form, bootstrap_version=self.bootstrap_version, profile_params=self.profile_args)
 
     def config_runtime(self):
-        lock = self.resolve(self.runtime.get('lock'))
+        lock = self.resolve(self.runtime.get('lock')) and not self.global_unlock
         if lock:
             def_ = self.resolve(self.runtime.get('def'))
             self.form['runtime'].render_kw = {'disabled': 'disabled'}
@@ -257,7 +264,7 @@ class SbatchForm(Configurable):
             self.form['runtime'].validators[-1].message = f'Runtime outside of allowed range [{min_}, {max_}]'
 
     def config_nprocs(self):
-        lock = self.resolve(self.nprocs.get('lock'))
+        lock = self.resolve(self.nprocs.get('lock')) and not self.global_unlock
         if lock:
             def_ = self.resolve(self.nprocs.get('def'))
             self.form['nprocs'].render_kw = {'disabled': 'disabled'}
@@ -276,7 +283,7 @@ class SbatchForm(Configurable):
             self.form['nprocs'].validators[-1].max = max_
 
     def config_memory(self):
-        lock = self.resolve(self.memory.get('lock'))
+        lock = self.resolve(self.memory.get('lock')) and not self.global_unlock
         if lock:
             def_ = self.resolve(self.memory.get('def'))
             self.form['memory'].render_kw = {'disabled': 'disabled'}
@@ -295,7 +302,7 @@ class SbatchForm(Configurable):
             self.form['memory'].validators[-1].max = max_
 
     def config_oversubscribe(self):
-        if self.oversubscribe['lock']:
+        if self.oversubscribe['lock'] and not self.global_unlock:
             self.form['oversubscribe'].render_kw = {'disabled': 'disabled'}
 
     def config_account(self):
@@ -309,12 +316,12 @@ class SbatchForm(Configurable):
         self.form['account'].choices = choices
         self.form['account'].validators[-1].values = keys
 
-        if self.resolve(self.account.get('lock')):
+        if self.resolve(self.account.get('lock')) and not self.global_unlock:
             self.form['account'].render_kw = {'disabled': 'disabled'}
 
     def config_gpus(self):
         choices = self.resolve(self.gpus.get('choices'))
-        lock = self.resolve(self.gpus.get('lock'))
+        lock = self.resolve(self.gpus.get('lock')) and not self.global_unlock
 
         gpu_choice_map = {}
         # if the node has shards, we need the number of gpus and number of shards
@@ -366,10 +373,11 @@ class SbatchForm(Configurable):
         self.form['gpus'].validators[-1].values = [key for key, value in self.form['gpus'].choices]
 
     def config_profile(self):
-        choices = self.resolve(self.profile.get('choices'))
+        # only keep choices that are in the filtered list provided by self.profile_args
+        choices = [key for key in self.resolve(self.profile.get('choices')) if key in self.profile_args.keys()]
         if not choices:
             choices = self.profile_args.keys()
-        lock = self.resolve(self.profile.get('lock'))
+        lock = self.resolve(self.profile.get('lock')) and not self.global_unlock
         self.form['profile'].validators[-1].values = [key for key in choices]
         self.form['profile'].choices = [(key, self.profile_args[key]['name']) for key in choices]
 
@@ -379,7 +387,7 @@ class SbatchForm(Configurable):
 
     def config_ui(self):
         choices = self.resolve(self.ui.get('choices'))
-        lock = self.resolve(self.ui.get('lock'))
+        lock = self.resolve(self.ui.get('lock')) and not self.global_unlock
         self.form['ui'].validators[-1].values = [key for key in choices]
         self.form['ui'].choices = [(key, self.ui_args[key]['name']) for key in choices]
 
@@ -388,7 +396,7 @@ class SbatchForm(Configurable):
 
     def config_partition(self):
         choices = list(self.resolve(self.partition.get('choices')))
-        lock = self.resolve(self.partition.get('lock'))
+        lock = self.resolve(self.partition.get('lock')) and not self.global_unlock
         def_ = self.resolve(self.partition.get('def'))
 
         if def_ != '':
@@ -406,7 +414,7 @@ class SbatchForm(Configurable):
 
     def config_feature(self):
         choices = self.resolve(self.feature.get('choices'))
-        lock = self.resolve(self.feature.get('lock'))
+        lock = self.resolve(self.feature.get('lock')) and not self.global_unlock
         def_ = self.resolve(self.feature.get('def'))
 
         self.form['feature'].choices = list(zip(choices, choices))
@@ -442,7 +450,7 @@ class SbatchForm(Configurable):
 
     def config_reservations(self):
         choices = self.resolve(self.reservation.get('choices'))
-        lock = self.resolve(self.reservation.get('lock'))
+        lock = self.resolve(self.reservation.get('lock')) and not self.global_unlock
         if choices is None:
             choices = []
 

@@ -54,6 +54,7 @@ c.SlurmFormSpawner.ui_args = {
 Each dictionary has the following keys:
 - `name` (required): string that will appear in the Spawner form
 - `params` (required): dictionary that can specify the value of each of the parameters in SbatchForm (see SbatchForm section).
+- `required_scope` (optional): JupyterHub scope that is required to see this profile. Default: no restriction
 
 Here is an example of how you could define profiles
 ```
@@ -68,6 +69,7 @@ c.SlurmFormSpawner.profile_args = {
     },
     'parallel_testing' : {
         'name': 'Parallel Testing',
+        'required_scope': 'read:services',
         'params': {
             'nprocs': 8,
             'oversubscribe': False,
@@ -94,6 +96,7 @@ c.SlurmFormSpawner.profile_args = {
 | `c.SbatchForm.partition` | `Dict({'def', 'choices', 'lock'})` | Slurm partition parameters | refer to `form.py` |
 | `c.SbatchForm.feature` | `Dict({'def', 'choices', 'lock'})` | Slurm feature (constraint) parameters | refer to `form.py` |
 | `c.SbatchForm.form_template_path` | `Unicode` | Path to the Jinja2 template of the form | `os.path.join(sys.prefix, 'share',  'slurmformspawner', 'templates', 'form.html')` |
+| `c.SbatchForm.unlocked_for_scope` | `Unicode` | JupyterHub scope that unlocks all locked elements. | - |
 
 ### SlurmAPI
 
